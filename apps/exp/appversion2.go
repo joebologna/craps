@@ -1,12 +1,12 @@
 package exp
 
 import (
+	"bytes"
 	"craps/opts"
 	"embed"
 	"fmt"
 	"image"
 	"image/png"
-	"os"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -20,13 +20,11 @@ func App2(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 	images := make([]image.Image, 0)
 	for i := 60; i <= 150; i++ {
 		fileName := fmt.Sprintf("media/Animation/roll-1/%04d.png", i)
-		file, err := os.Open(fileName)
+		data, err := animationFiles.ReadFile(fileName)
 		if err != nil {
 			panic(err)
 		}
-		defer file.Close()
-
-		img, err := png.Decode(file)
+		img, err := png.Decode(bytes.NewReader(data))
 		if err != nil {
 			panic(err)
 		}
