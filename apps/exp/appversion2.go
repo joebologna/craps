@@ -41,6 +41,34 @@ func App2(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 			}
 		})
 		images[len(images)-1].Show()
+		return container.NewVBox(
+			container.NewCenter(container.NewStack(images...)),
+			rollButton,
+			result,
+		)
+	} else if opt == opts.AnimationWithShowHide {
+		images[0].Show()
+		doAnimation := func(tick float32) {
+			// there are len(images) to display in 4s, tick will be 0.5 at 2s for instance, which is len(images)/2, so the image # is tick*len(images)
+			i := int(tick * float32(len(images)-1))
+			if i > 0 {
+				images[i-1].Hide()
+			}
+			images[i].Show()
+			if tick == 1.0 {
+				resultString.Set("Please roll.")
+			}
+		}
+		rollButton = widget.NewButton("Roll", func() {
+			resultString.Set("Rolling...")
+			images[len(images)-1].Hide()
+			fyne.NewAnimation(4*time.Second, doAnimation).Start()
+		})
+		return container.NewVBox(
+			container.NewCenter(container.NewStack(images...)),
+			rollButton,
+			result,
+		)
 	} else {
 		images[0].Show()
 		doAnimation := func(tick float32) {
@@ -59,12 +87,12 @@ func App2(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 			images[len(images)-1].Hide()
 			fyne.NewAnimation(4*time.Second, doAnimation).Start()
 		})
+		return container.NewVBox(
+			container.NewCenter(container.NewStack(images...)),
+			rollButton,
+			result,
+		)
 	}
-	return container.NewVBox(
-		container.NewCenter(container.NewStack(images...)),
-		rollButton,
-		result,
-	)
 }
 
 func showImages(images []fyne.CanvasObject, inProgress *bool, rollButton *widget.Button, resultString *binding.String) {

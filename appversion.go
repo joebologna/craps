@@ -14,6 +14,7 @@ const (
 	AppVersion1 AppVersion = iota
 	AppVersion2a
 	AppVersion2b
+	AppVersion2c
 	AppVersion3
 )
 
@@ -25,6 +26,8 @@ func (app AppVersion) String() string {
 		return "V2a"
 	case AppVersion2b:
 		return "V2b"
+	case AppVersion2c:
+		return "V2c"
 	default:
 		return "Unknown"
 	}
@@ -37,7 +40,9 @@ func (v AppVersion) App(animationFiles embed.FS) (stuff *fyne.Container) {
 	case AppVersion2a:
 		return exp.App2(animationFiles, opts.GoFuncOpt)
 	case AppVersion2b:
-		return exp.App2(animationFiles, opts.AnimationOpt)
+		return exp.App2(animationFiles, opts.AnimationWithShowHide)
+	case AppVersion2c:
+		return exp.App2(animationFiles, opts.AnimateImageObject)
 	default:
 		panic("unsupported version")
 	}

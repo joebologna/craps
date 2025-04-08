@@ -4,5 +4,6 @@ type Options int
 
 const (
 	GoFuncOpt Options = iota
-	AnimationOpt
+	AnimationWithShowHide
+	AnimateImageObject
 )
