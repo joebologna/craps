@@ -2,6 +2,7 @@ package main
 
 import (
 	"craps/apps/exp"
+	"embed"
 
 	"fyne.io/fyne/v2"
 )
@@ -10,21 +11,26 @@ type AppVersion int
 
 const (
 	AppVersion1 AppVersion = iota
+	AppVersion2
 )
 
 func (app AppVersion) String() string {
 	switch app {
 	case AppVersion1:
 		return "V1"
+	case AppVersion2:
+		return "V2"
 	default:
 		return "Unknown"
 	}
 }
 
-func (v AppVersion) App() (stuff *fyne.Container, button fyne.CanvasObject) {
+func (v AppVersion) App(animationFiles embed.FS) (stuff *fyne.Container, button fyne.CanvasObject) {
 	switch v {
 	case AppVersion1:
-		return exp.App1()
+		return exp.App1(animationFiles)
+	case AppVersion2:
+		return exp.App2(animationFiles)
 	default:
 		panic("unsupported version")
 	}
