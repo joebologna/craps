@@ -19,7 +19,7 @@ import (
 func App2(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 	images := make([]image.Image, 0)
 	for i := 60; i <= 150; i++ {
-		fileName := fmt.Sprintf("media/Animation/%04d.png", i)
+		fileName := fmt.Sprintf("media/Animation/roll-1/%04d.png", i)
 		file, err := os.Open(fileName)
 		if err != nil {
 			panic(err)
@@ -37,7 +37,7 @@ func App2(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 	result := widget.NewLabelWithData(resultString)
 	resultString.Set("Please roll.")
 	var rollButton *widget.Button
-	img := canvas.NewImageFromImage(images[90])
+	img := canvas.NewImageFromImage(images[len(images)-1])
 	img.FillMode = canvas.ImageFillOriginal
 	img.ScaleMode = canvas.ImageScaleFastest
 	img.Refresh()
