@@ -1,20 +1,27 @@
 package exp
 
 import (
+	"bytes"
 	"embed"
-	"os"
+	"fmt"
 
 	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/widget"
 )
 
 // stub
-func App1(_ embed.FS) (*fyne.Container, *widget.Button) {
-	button := widget.NewButton("update rows", func() { os.Exit(0) })
-	button.Alignment = widget.ButtonAlignLeading
-	button.Importance = widget.HighImportance
-
-	stuff := container.NewVBox(widget.NewLabel("hi"))
-	return stuff, button
+func App1(animationFiles embed.FS) *fyne.Container {
+	images := make([]fyne.CanvasObject, 0)
+	for i := range []int{60, 150} {
+		fileName := fmt.Sprintf("media/Animation/%04d.png", i)
+		data, err := animationFiles.ReadFile(fileName)
+		if err == nil {
+			img := canvas.NewImageFromReader(bytes.NewReader(data), fileName)
+			img.FillMode = canvas.ImageFillOriginal
+			img.Hide()
+			images = append(images, img)
+		}
+	}
+	return container.NewCenter(images...)
 }
