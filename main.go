@@ -19,7 +19,7 @@ func main() {
 	screenSize := utils.GetScreenSize()
 	myWindow.Resize(screenSize)
 
-	stuff := AppVersion2b.App(animationFiles)
+	stuff := AppVersion2c.App(animationFiles)
 
 	myWindow.SetContent(stuff)
 

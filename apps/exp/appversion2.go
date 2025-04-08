@@ -20,10 +20,10 @@ func App2(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 		fileName := fmt.Sprintf("media/Animation/%04d.png", i)
 		data, err := animationFiles.ReadFile(fileName)
 		if err == nil {
-			img := canvas.NewImageFromReader(bytes.NewReader(data), fileName)
-			img.FillMode = canvas.ImageFillOriginal
-			img.Hide()
-			images = append(images, img)
+			tmp := canvas.NewImageFromReader(bytes.NewReader(data), fileName)
+			tmp.FillMode = canvas.ImageFillOriginal
+			tmp.Hide()
+			images = append(images, tmp)
 		} else {
 			panic(err)
 		}
@@ -46,26 +46,32 @@ func App2(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 			rollButton,
 			result,
 		)
-	} else if opt == opts.AnimationWithShowHide {
-		images[0].Show()
+	} else if opt == opts.AnimateImageObject {
+		fileName := fmt.Sprintf("media/Animation/%04d.png", 150)
+		data, err := animationFiles.ReadFile(fileName)
+		if err != nil {
+			panic(err)
+		}
+		img := canvas.NewImageFromReader(bytes.NewReader(data), fileName)
+		img.FillMode = canvas.ImageFillOriginal
+		img.ScaleMode = canvas.ImageScaleFastest
 		doAnimation := func(tick float32) {
 			// there are len(images) to display in 4s, tick will be 0.5 at 2s for instance, which is len(images)/2, so the image # is tick*len(images)
 			i := int(tick * float32(len(images)-1))
-			if i > 0 {
-				images[i-1].Hide()
-			}
-			images[i].Show()
+			img.Resource = images[i].(*canvas.Image).Resource
+			img.FillMode = canvas.ImageFillOriginal
+			img.ScaleMode = canvas.ImageScaleFastest
+			img.Refresh()
 			if tick == 1.0 {
 				resultString.Set("Please roll.")
 			}
 		}
 		rollButton = widget.NewButton("Roll", func() {
 			resultString.Set("Rolling...")
-			images[len(images)-1].Hide()
 			fyne.NewAnimation(4*time.Second, doAnimation).Start()
 		})
 		return container.NewVBox(
-			container.NewCenter(container.NewStack(images...)),
+			img,
 			rollButton,
 			result,
 		)
