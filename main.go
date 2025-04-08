@@ -8,7 +8,7 @@ import (
 	"fyne.io/fyne/v2/theme"
 )
 
-//go:embed media/Animation/*
+//go:embed media/Animation/roll-*/*
 var animationFiles embed.FS
 
 func main() {
