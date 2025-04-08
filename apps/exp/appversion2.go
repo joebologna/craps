@@ -15,14 +15,13 @@ import (
 )
 
 func App2(animationFiles embed.FS, opt opts.Options) *fyne.Container {
-	images := make([]fyne.CanvasObject, 0)
+	images := make([]*canvas.Image, 0)
 	for i := 60; i <= 150; i++ {
 		fileName := fmt.Sprintf("media/Animation/%04d.png", i)
 		data, err := animationFiles.ReadFile(fileName)
 		if err == nil {
 			tmp := canvas.NewImageFromReader(bytes.NewReader(data), fileName)
 			tmp.FillMode = canvas.ImageFillOriginal
-			tmp.Hide()
 			images = append(images, tmp)
 		} else {
 			panic(err)
@@ -32,91 +31,33 @@ func App2(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 	var resultString = binding.NewString()
 	result := widget.NewLabelWithData(resultString)
 	resultString.Set("Please roll.")
-	var inProgress = false
 	var rollButton *widget.Button
-	if opt == opts.GoFuncOpt {
-		rollButton = widget.NewButton("Roll", func() {
-			if !inProgress {
-				showImages(images, &inProgress, rollButton, &resultString)
-			}
-		})
-		images[len(images)-1].Show()
-		return container.NewVBox(
-			container.NewCenter(container.NewStack(images...)),
-			rollButton,
-			result,
-		)
-	} else if opt == opts.AnimateImageObject {
-		fileName := fmt.Sprintf("media/Animation/%04d.png", 150)
-		data, err := animationFiles.ReadFile(fileName)
-		if err != nil {
-			panic(err)
-		}
-		img := canvas.NewImageFromReader(bytes.NewReader(data), fileName)
+	fileName := fmt.Sprintf("media/Animation/%04d.png", 150)
+	data, err := animationFiles.ReadFile(fileName)
+	if err != nil {
+		panic(err)
+	}
+	img := canvas.NewImageFromReader(bytes.NewReader(data), fileName)
+	img.FillMode = canvas.ImageFillOriginal
+	img.ScaleMode = canvas.ImageScaleFastest
+	doAnimation := func(tick float32) {
+		// there are len(images) to display in 4s, tick will be 0.5 at 2s for instance, which is len(images)/2, so the image # is tick*len(images)
+		i := int(tick * float32(len(images)-1))
+		img.Resource = images[i].Resource
 		img.FillMode = canvas.ImageFillOriginal
 		img.ScaleMode = canvas.ImageScaleFastest
-		doAnimation := func(tick float32) {
-			// there are len(images) to display in 4s, tick will be 0.5 at 2s for instance, which is len(images)/2, so the image # is tick*len(images)
-			i := int(tick * float32(len(images)-1))
-			img.Resource = images[i].(*canvas.Image).Resource
-			img.FillMode = canvas.ImageFillOriginal
-			img.ScaleMode = canvas.ImageScaleFastest
-			img.Refresh()
-			if tick == 1.0 {
-				resultString.Set("Please roll.")
-			}
+		img.Refresh()
+		if tick == 1.0 {
+			resultString.Set("Please roll.")
 		}
-		rollButton = widget.NewButton("Roll", func() {
-			resultString.Set("Rolling...")
-			fyne.NewAnimation(4*time.Second, doAnimation).Start()
-		})
-		return container.NewVBox(
-			img,
-			rollButton,
-			result,
-		)
-	} else {
-		images[0].Show()
-		doAnimation := func(tick float32) {
-			// there are len(images) to display in 4s, tick will be 0.5 at 2s for instance, which is len(images)/2, so the image # is tick*len(images)
-			i := int(tick * float32(len(images)-1))
-			if i > 0 {
-				images[i-1].Hide()
-			}
-			images[i].Show()
-			if tick == 1.0 {
-				resultString.Set("Please roll.")
-			}
-		}
-		rollButton = widget.NewButton("Roll", func() {
-			resultString.Set("Rolling...")
-			images[len(images)-1].Hide()
-			fyne.NewAnimation(4*time.Second, doAnimation).Start()
-		})
-		return container.NewVBox(
-			container.NewCenter(container.NewStack(images...)),
-			rollButton,
-			result,
-		)
 	}
-}
-
-func showImages(images []fyne.CanvasObject, inProgress *bool, rollButton *widget.Button, resultString *binding.String) {
-	go func() {
-		(*resultString).Set("Rolling...")
-		*inProgress = true
-		rollButton.Disable()
-		images[len(images)-1].Hide()
-		// images[10].Show()
-		// time.Sleep(2 * time.Second)
-		for i := 10; i < len(images); i++ {
-			images[i].Show()
-			time.Sleep(time.Millisecond * 50)
-			images[i].Hide()
-		}
-		images[len(images)-1].Show()
-		*inProgress = false
-		rollButton.Enable()
-		(*resultString).Set("You rolled 3 + 3 = 6")
-	}()
+	rollButton = widget.NewButton("Roll", func() {
+		resultString.Set("Rolling...")
+		fyne.NewAnimation(4*time.Second, doAnimation).Start()
+	})
+	return container.NewVBox(
+		img,
+		rollButton,
+		result,
+	)
 }
