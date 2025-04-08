@@ -11,7 +11,9 @@ import (
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/theme"
+	"fyne.io/fyne/v2/widget"
 )
 
 //go:embed media/Animation/*
@@ -36,32 +38,46 @@ func main() {
 		}
 	}
 
-	myWindow.SetContent(container.NewCenter(container.NewStack(images...)))
+	var resultString = binding.NewString()
+	result := widget.NewLabelWithData(resultString)
+	resultString.Set("Please roll.")
+	var inProgress = false
+	var rollButton *widget.Button
+	rollButton = widget.NewButton("Roll", func() {
+		if !inProgress {
+			showImages(images, &inProgress, rollButton, &resultString)
+		}
+	})
+	images[len(images)-1].Show()
+	myWindow.SetContent(
+		container.NewVBox(
+			container.NewCenter(container.NewStack(images...)),
+			rollButton,
+			result,
+		),
+	)
 	screenSize := utils.GetScreenSize()
 	myWindow.Resize(screenSize)
-
-	go func() {
-		for {
-			showImages(images)
-		}
-	}()
-
-	// Example usage of animationFiles
-	// You can load files from the embedded filesystem as needed
-	// Example: data, _ := animationFiles.ReadFile("media/Animation/example.gif")
 
 	myWindow.ShowAndRun()
 }
 
-func showImages(images []fyne.CanvasObject) {
-	images[len(images)-1].Hide()
-	images[0].Show()
-	time.Sleep(2 * time.Second)
-	var i = 0
-	for i = 0; i < len(images); i++ {
-		images[i].Show()
-		time.Sleep(time.Millisecond * 100)
-		images[i].Hide()
-	}
-	images[len(images)-1].Show()
+func showImages(images []fyne.CanvasObject, inProgress *bool, rollButton *widget.Button, resultString *binding.String) {
+	go func() {
+		(*resultString).Set("Rolling...")
+		*inProgress = true
+		rollButton.Disable()
+		images[len(images)-1].Hide()
+		// images[10].Show()
+		// time.Sleep(2 * time.Second)
+		for i := 10; i < len(images); i++ {
+			images[i].Show()
+			time.Sleep(time.Millisecond * 50)
+			images[i].Hide()
+		}
+		images[len(images)-1].Show()
+		*inProgress = false
+		rollButton.Enable()
+		(*resultString).Set("You rolled 3 + 3 = 6")
+	}()
 }
