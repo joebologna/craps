@@ -36,20 +36,14 @@ func main() {
 		}
 	}
 
-	myWindow.SetContent(container.NewCenter(images...))
+	myWindow.SetContent(container.NewCenter(container.NewStack(images...)))
 	screenSize := utils.GetScreenSize()
 	myWindow.Resize(screenSize)
 
 	go func() {
-		images[0].Show()
-		time.Sleep(5 * time.Second)
-		var i = 0
-		for i = 0; i < len(images); i++ {
-			images[i].Show()
-			time.Sleep(time.Millisecond * 150)
-			images[i].Hide()
+		for {
+			showImages(images)
 		}
-		images[len(images)-1].Show()
 	}()
 
 	// Example usage of animationFiles
@@ -57,4 +51,17 @@ func main() {
 	// Example: data, _ := animationFiles.ReadFile("media/Animation/example.gif")
 
 	myWindow.ShowAndRun()
+}
+
+func showImages(images []fyne.CanvasObject) {
+	images[len(images)-1].Hide()
+	images[0].Show()
+	time.Sleep(2 * time.Second)
+	var i = 0
+	for i = 0; i < len(images); i++ {
+		images[i].Show()
+		time.Sleep(time.Millisecond * 100)
+		images[i].Hide()
+	}
+	images[len(images)-1].Show()
 }
