@@ -77,6 +77,7 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 				bank.SubBetAmt(bet)
 				if bank.amt <= 0.0 {
 					bank.SetAmt(bank.initialBank)
+					bet.Set("0.00")
 					resultText += " Refreshed bank."
 				}
 			default:
@@ -100,22 +101,7 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 
 	keys := make([]fyne.CanvasObject, 0)
 	for _, key := range []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "/", "AC", "Auto", "DEL"} {
-		b := widget.NewButton(" "+key+" ", func() {
-			s, _ := bet.Get()
-			if key == "DEL" {
-				if len(s) > 0 {
-					s = s[:len(s)-1]
-					bet.Set(s)
-				}
-			} else if key == "AC" {
-				bet.Set("")
-			} else if strings.ContainsAny(key, "0123456789.") {
-				s += key
-				bet.Set(s)
-			} else if key == "Auto" {
-				setAuto(bet, bank.amt)
-			}
-		})
+		b := widget.NewButton(" "+key+" ", func() { handleKey(key, bet, bank) })
 		keys = append(keys, b)
 	}
 
@@ -139,6 +125,32 @@ func updateDice(img []*canvas.Image, left int, images [][]image.Image, leftDie i
 	img[left].Refresh()
 	img[right].Image = images[rightDie][i]
 	img[right].Refresh()
+}
+
+func handleKey(key string, bet binding.String, bank *Cash) {
+	s, _ := bet.Get()
+	if key == "DEL" {
+		if len(s) > 0 {
+			s = s[:len(s)-1]
+			if canCover(s, bank) {
+				bet.Set(s)
+			}
+		}
+	} else if key == "AC" {
+		bet.Set("")
+	} else if strings.ContainsAny(key, "0123456789.") {
+		s += key
+		if canCover(s, bank) {
+			bet.Set(s)
+		}
+	} else if key == "Auto" {
+		setAuto(bet, bank.amt)
+	}
+}
+
+func canCover(s string, bank *Cash) bool {
+	amt, err := strconv.ParseFloat(s, 32)
+	return err == nil && amt <= float64(bank.amt)
 }
 
 type Cash struct {
