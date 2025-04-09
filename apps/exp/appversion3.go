@@ -37,11 +37,11 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 		img[i].ScaleMode = canvas.ImageScaleFastest
 	}
 
-	initialBank := float32(2000.0)
+	initialBank := int64(2000)
 	bank := NewCash(initialBank)
 	bankLabel := widget.NewLabelWithData(bank.amtString)
 	bet := binding.NewString()
-	bet.Set(strconv.FormatFloat(float64(initialBank)/2, 'f', 2, 32))
+	bet.Set(strconv.FormatInt(initialBank/2, 10))
 	betLabel := widget.NewLabelWithData(bet)
 
 	// the zero based value of the rolled die
@@ -80,15 +80,15 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 	rollButton = widget.NewButton("Roll", func() {
 		rollButton.Disable()
 		b, _ := bet.Get()
-		f, _ := strconv.ParseFloat(b, 32)
-		bet.Set(strconv.FormatFloat(f, 'f', 2, 32))
+		i, _ := strconv.ParseInt(b, 10, 64)
+		bet.Set(strconv.FormatInt(i, 10))
 		leftDie, rightDie = rand.Intn(6), rand.Intn(6)
 		resultString.Set("Rolling...")
 		fyne.NewAnimation(1*time.Second, doAnimation).Start()
 	})
 
 	keys := make([]fyne.CanvasObject, 0)
-	for _, key := range []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "/", "AC", "Auto", "DEL"} {
+	for _, key := range []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", " ", "0", " ", "AC", "Auto", "DEL"} {
 		b := widget.NewButton(" "+key+" ", func() { handleKey(key, bet, bank) })
 		keys = append(keys, b)
 	}
@@ -142,11 +142,11 @@ func canCover(s string, bank *Cash) bool {
 }
 
 type Cash struct {
-	initialBank, amt float32
+	initialBank, amt int64
 	amtString        binding.String
 }
 
-func NewCash(initialBank float32) *Cash {
+func NewCash(initialBank int64) *Cash {
 	b := &Cash{
 		initialBank: initialBank,
 		amt:         initialBank,
@@ -158,26 +158,26 @@ func NewCash(initialBank float32) *Cash {
 
 func (b *Cash) AddBetAmt(bet binding.String, neg bool) {
 	s, _ := bet.Get()
-	betAmt, _ := strconv.ParseFloat(s, 32)
+	betAmt, _ := strconv.ParseInt(s, 10, 64)
 	if neg {
 		betAmt = -betAmt
 	}
-	newAmt := b.amt + float32(betAmt)
+	newAmt := b.amt + betAmt
 	b.SetAmt(newAmt)
 }
 
-func (b *Cash) SetAmt(amt float32) {
+func (b *Cash) SetAmt(amt int64) {
 	b.amt = amt
 	b.amtString.Set(b.String())
 }
 
 func (b *Cash) String() string {
-	return fmt.Sprintf("%.2f", b.amt)
+	return strconv.FormatInt(b.amt, 10)
 }
 
-func setAuto(bet binding.String, curAmt float32) {
+func setAuto(bet binding.String, curAmt int64) {
 	betAmt := curAmt / 2
-	bet.Set(strconv.FormatFloat(float64(betAmt), 'f', 2, 32))
+	bet.Set(strconv.FormatInt(betAmt, 10))
 }
 
 func cacheImages(animationFiles embed.FS) [][]image.Image {
