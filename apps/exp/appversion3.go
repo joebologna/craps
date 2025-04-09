@@ -22,7 +22,7 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 	images := make([][]image.Image, 6)
 	for j := 1; j <= 6; j++ {
 		images[j-1] = make([]image.Image, 0)
-		for i := 60; i <= 150; i++ {
+		for i := 70; i <= 140; i++ {
 			fileName := fmt.Sprintf("media/Animation/roll-%d/%04d.png", j, i)
 			data, err := animationFiles.ReadFile(fileName)
 			if err != nil {
@@ -36,37 +36,29 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 		}
 	}
 
-	var resultString = binding.NewString()
-	result := widget.NewLabelWithData(resultString)
+	resultString := binding.NewString()
 	resultString.Set("Please roll.")
-	var rollButton *widget.Button
+	result := widget.NewLabelWithData(resultString)
+
 	img := make([]*canvas.Image, 2)
 	for i := 0; i < 2; i++ {
 		img[i] = canvas.NewImageFromImage(images[i][len(images)-1])
 		img[i].FillMode = canvas.ImageFillOriginal
 		img[i].ScaleMode = canvas.ImageScaleFastest
-		img[i].Refresh()
-		// img[i].File = fmt.Sprintf("File[%d][%d]", i, len(images)-1)
 	}
-	left := 0
-	right := 1
+
+	initialBank := float32(100.0)
+	bank, bet := NewCash(100.0), NewCash(initialBank/2)
+	bankLabel, betLabel := widget.NewLabelWithData(bank.amtString), widget.NewLabelWithData(bet.amtString)
+
+	left, right, leftDie, rightDie := 0, 1, 0, 0
 	rand.Seed(uint64(time.Now().UnixNano()))
 
-	leftDie := 0
-	rightDie := 0
-
+	var rollButton *widget.Button
 	doAnimation := func(tick float32) {
 		// there are len(images) to display in 4s, tick will be 0.5 at 2s for instance, which is len(images)/2, so the image # is tick*len(images)
 		i := int(tick * float32(len(images[0])-1))
-		img[left].Image = images[leftDie][i]
-		img[left].FillMode = canvas.ImageFillOriginal
-		img[left].ScaleMode = canvas.ImageScaleFastest
-		img[left].Refresh()
-		img[right].Image = images[rightDie][i]
-		img[right].FillMode = canvas.ImageFillOriginal
-		img[right].ScaleMode = canvas.ImageScaleFastest
-		img[right].Refresh()
-		// fmt.Println(i, img[left].File, img[right].File)
+		updateDice(img, left, images, leftDie, i, right, rightDie)
 		if tick == 1.0 {
 			resultString.Set("Please roll.")
 			rollButton.Enable()
@@ -75,10 +67,17 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 			switch total {
 			case 7, 11:
 				resultText += ". You Win!"
+				bank.AddAmt(bet.amt)
 			case 2, 3, 12:
 				resultText += ". You Lose."
+				bank.AddAmt(-bet.amt)
+				if bank.amt <= 0.0 {
+					bank.SetAmt(bank.initialBank)
+					resultText += " Refreshed bank."
+				}
 			default:
-				resultText += ". Roll again."
+				bet.SetAmt(bank.amt / 2)
+				resultText += ". Push. Betting half. Roll again."
 			}
 			resultString.Set(resultText)
 		}
@@ -109,5 +108,43 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 		container.NewGridWithColumns(3, keys...),
 		rollButton,
 		result,
+		bankLabel,
+		betLabel,
 	)
+}
+
+func updateDice(img []*canvas.Image, left int, images [][]image.Image, leftDie int, i int, right int, rightDie int) {
+	img[left].Image = images[leftDie][i]
+	img[left].Refresh()
+	img[right].Image = images[rightDie][i]
+	img[right].Refresh()
+}
+
+type Cash struct {
+	initialBank, amt float32
+	amtString        binding.String
+}
+
+func NewCash(initialBank float32) *Cash {
+	b := &Cash{
+		initialBank: initialBank,
+		amt:         initialBank,
+		amtString:   binding.NewString(),
+	}
+	b.amtString.Set(b.String())
+	return b
+}
+
+func (b *Cash) AddAmt(amt float32) {
+	b.amt += amt
+	b.amtString.Set(b.String())
+}
+
+func (b *Cash) SetAmt(amt float32) {
+	b.amt = amt
+	b.amtString.Set(b.String())
+}
+
+func (b *Cash) String() string {
+	return fmt.Sprintf("%.2f", b.amt)
 }
