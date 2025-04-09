@@ -14,6 +14,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/widget"
+	"golang.org/x/exp/rand"
 )
 
 func App2(animationFiles embed.FS, opt opts.Options) *fyne.Container {
@@ -48,11 +49,14 @@ func App2(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 	}
 	left := 0
 	right := 1
+	rand.Seed(uint64(time.Now().UnixNano()))
+
+	leftDie := 0
+	rightDie := 0
+
 	doAnimation := func(tick float32) {
 		// there are len(images) to display in 4s, tick will be 0.5 at 2s for instance, which is len(images)/2, so the image # is tick*len(images)
 		i := int(tick * float32(len(images[0])-1))
-		leftDie := 0
-		rightDie := 1
 		img[left].Image = images[leftDie][i]
 		img[left].FillMode = canvas.ImageFillOriginal
 		img[left].ScaleMode = canvas.ImageScaleFastest
@@ -64,12 +68,18 @@ func App2(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 		// fmt.Println(i, img[left].File, img[right].File)
 		if tick == 1.0 {
 			resultString.Set("Please roll.")
+			rollButton.Enable()
 		}
 	}
+
 	rollButton = widget.NewButton("Roll", func() {
+		rollButton.Disable()
+		leftDie = rand.Intn(6)
+		rightDie = rand.Intn(6)
 		resultString.Set("Rolling...")
 		fyne.NewAnimation(4*time.Second, doAnimation).Start()
 	})
+
 	return container.NewVBox(
 		container.NewHBox(
 			img[left],

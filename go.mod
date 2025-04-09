@@ -2,7 +2,10 @@ module craps
 
 go 1.23
 
-require fyne.io/fyne/v2 v2.5.5
+require (
+	fyne.io/fyne/v2 v2.5.5
+	golang.org/x/exp v0.0.0-20200224162631-6cc2880d07d6
+)
 
 require (
 	fyne.io/systray v1.11.0 // indirect
