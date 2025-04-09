@@ -13,6 +13,7 @@ import (
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 	"golang.org/x/exp/rand"
 )
@@ -93,8 +94,10 @@ func App2(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 
 	return container.NewVBox(
 		container.NewHBox(
+			layout.NewSpacer(),
 			img[left],
 			img[right],
+			layout.NewSpacer(),
 		),
 		rollButton,
 		result,
