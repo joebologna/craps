@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"image"
 	"image/png"
+	"strconv"
+	"strings"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -48,9 +50,11 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 	}
 
 	initialBank := float32(100.0)
-	bank, bet := NewCash(100.0), NewCash(initialBank/2)
-	bankLabel, betLabel := widget.NewLabelWithData(bank.amtString), widget.NewLabelWithData(bet.amtString)
-
+	bank := NewCash(100.0)
+	bankLabel := widget.NewLabelWithData(bank.amtString)
+	bet := binding.NewString()
+	bet.Set(strconv.FormatFloat(float64(initialBank)/2, 'f', 2, 32))
+	betLabel := widget.NewLabelWithData(bet)
 	left, right, leftDie, rightDie := 0, 1, 0, 0
 	rand.Seed(uint64(time.Now().UnixNano()))
 
@@ -67,10 +71,10 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 			switch total {
 			case 7, 11:
 				resultText += ". You Win!"
-				bank.AddAmt(bet.amt)
+				bank.AddBetAmt(bet)
 			case 2, 3, 12:
 				resultText += ". You Lose."
-				bank.AddAmt(-bet.amt)
+				bank.SubBetAmt(bet)
 				if bank.amt <= 0.0 {
 					bank.SetAmt(bank.initialBank)
 					resultText += " Refreshed bank."
@@ -86,14 +90,31 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 
 	rollButton = widget.NewButton("Roll", func() {
 		rollButton.Disable()
+		b, _ := bet.Get()
+		f, _ := strconv.ParseFloat(b, 32)
+		bet.Set(strconv.FormatFloat(f, 'f', 2, 32))
 		leftDie, rightDie = rand.Intn(6), rand.Intn(6)
 		resultString.Set("Rolling...")
 		fyne.NewAnimation(1*time.Second, doAnimation).Start()
 	})
 
 	keys := make([]fyne.CanvasObject, 0)
-	for _, key := range []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "/", "AC", "Calc", "DEL"} {
+	for _, key := range []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "/", "AC", "Auto", "DEL"} {
 		b := widget.NewButton(" "+key+" ", func() {
+			s, _ := bet.Get()
+			if key == "DEL" {
+				if len(s) > 0 {
+					s = s[:len(s)-1]
+					bet.Set(s)
+				}
+			} else if key == "AC" {
+				bet.Set("")
+			} else if strings.ContainsAny(key, "0123456789.") {
+				s += key
+				bet.Set(s)
+			} else if key == "Auto" {
+				setAuto(bet, bank.amt)
+			}
 		})
 		keys = append(keys, b)
 	}
@@ -140,6 +161,20 @@ func (b *Cash) AddAmt(amt float32) {
 	b.amtString.Set(b.String())
 }
 
+func (b *Cash) AddBetAmt(bet binding.String) {
+	s, _ := bet.Get()
+	betAmt, _ := strconv.ParseFloat(s, 32)
+	newAmt := b.amt + float32(betAmt)
+	b.SetAmt(newAmt)
+}
+
+func (b *Cash) SubBetAmt(bet binding.String) {
+	s, _ := bet.Get()
+	betAmt, _ := strconv.ParseFloat(s, 32)
+	newAmt := b.amt - float32(betAmt)
+	b.SetAmt(newAmt)
+}
+
 func (b *Cash) SetAmt(amt float32) {
 	b.amt = amt
 	b.amtString.Set(b.String())
@@ -147,4 +182,9 @@ func (b *Cash) SetAmt(amt float32) {
 
 func (b *Cash) String() string {
 	return fmt.Sprintf("%.2f", b.amt)
+}
+
+func setAuto(bet binding.String, curAmt float32) {
+	betAmt := curAmt / 2
+	bet.Set(strconv.FormatFloat(float64(betAmt), 'f', 2, 32))
 }
