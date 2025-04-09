@@ -69,6 +69,17 @@ func App2(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 		if tick == 1.0 {
 			resultString.Set("Please roll.")
 			rollButton.Enable()
+			total := leftDie + 1 + rightDie + 1 // Dice values are 1-indexed
+			resultText := fmt.Sprintf("You rolled: %d", total)
+			switch total {
+			case 7, 11:
+				resultText += ". You Win!"
+			case 2, 3, 12:
+				resultText += ". You Lose."
+			default:
+				resultText += ". Roll again."
+			}
+			resultString.Set(resultText)
 		}
 	}
 
