@@ -76,8 +76,9 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 					resultText += " Refreshed bank."
 				}
 			default:
-				bet.SetAmt(bank.amt / 2)
-				resultText += ". Push. Betting half. Roll again."
+				// bet.SetAmt(bank.amt / 2)
+				// resultText += ". Push. Betting half. Roll again."
+				resultText += ". Push."
 			}
 			resultString.Set(resultText)
 		}
@@ -85,10 +86,9 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 
 	rollButton = widget.NewButton("Roll", func() {
 		rollButton.Disable()
-		leftDie = rand.Intn(6)
-		rightDie = rand.Intn(6)
+		leftDie, rightDie = rand.Intn(6), rand.Intn(6)
 		resultString.Set("Rolling...")
-		fyne.NewAnimation(4*time.Second, doAnimation).Start()
+		fyne.NewAnimation(1*time.Second, doAnimation).Start()
 	})
 
 	keys := make([]fyne.CanvasObject, 0)
