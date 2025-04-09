@@ -21,29 +21,17 @@ import (
 )
 
 func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
-	images := make([][]image.Image, 6)
-	for j := 1; j <= 6; j++ {
-		images[j-1] = make([]image.Image, 0)
-		for i := 70; i <= 140; i++ {
-			fileName := fmt.Sprintf("media/Animation/roll-%d/%04d.png", j, i)
-			data, err := animationFiles.ReadFile(fileName)
-			if err != nil {
-				panic(err)
-			}
-			img, err := png.Decode(bytes.NewReader(data))
-			if err != nil {
-				panic(err)
-			}
-			images[j-1] = append(images[j-1], img)
-		}
-	}
+	images := cacheImages(animationFiles)
 
 	resultString := binding.NewString()
 	resultString.Set("Please roll.")
 	result := widget.NewLabelWithData(resultString)
 
+	// widgets showing die animation side-by-side
 	img := make([]*canvas.Image, 2)
-	for i := 0; i < 2; i++ {
+
+	left, right := 0, 1
+	for i := range []int{left, right} {
 		img[i] = canvas.NewImageFromImage(images[i][len(images)-1])
 		img[i].FillMode = canvas.ImageFillOriginal
 		img[i].ScaleMode = canvas.ImageScaleFastest
@@ -55,8 +43,9 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 	bet := binding.NewString()
 	bet.Set(strconv.FormatFloat(float64(initialBank)/2, 'f', 2, 32))
 	betLabel := widget.NewLabelWithData(bet)
-	left, right, leftDie, rightDie := 0, 1, 0, 0
-	rand.Seed(uint64(time.Now().UnixNano()))
+
+	// the zero based value of the rolled die
+	leftDie, rightDie := 0, 0
 
 	var rollButton *widget.Button
 	doAnimation := func(tick float32) {
@@ -71,24 +60,23 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 			switch total {
 			case 7, 11:
 				resultText += ". You Win!"
-				bank.AddBetAmt(bet)
+				bank.AddBetAmt(bet, false)
 			case 2, 3, 12:
 				resultText += ". You Lose."
-				bank.SubBetAmt(bet)
+				bank.AddBetAmt(bet, true)
 				if bank.amt <= 0.0 {
 					bank.SetAmt(bank.initialBank)
 					bet.Set("0.00")
 					resultText += " Refreshed bank."
 				}
 			default:
-				// bet.SetAmt(bank.amt / 2)
-				// resultText += ". Push. Betting half. Roll again."
 				resultText += ". Push."
 			}
 			resultString.Set(resultText)
 		}
 	}
 
+	rand.Seed(uint64(time.Now().UnixNano()))
 	rollButton = widget.NewButton("Roll", func() {
 		rollButton.Disable()
 		b, _ := bet.Get()
@@ -168,22 +156,13 @@ func NewCash(initialBank float32) *Cash {
 	return b
 }
 
-func (b *Cash) AddAmt(amt float32) {
-	b.amt += amt
-	b.amtString.Set(b.String())
-}
-
-func (b *Cash) AddBetAmt(bet binding.String) {
+func (b *Cash) AddBetAmt(bet binding.String, neg bool) {
 	s, _ := bet.Get()
 	betAmt, _ := strconv.ParseFloat(s, 32)
+	if neg {
+		betAmt = -betAmt
+	}
 	newAmt := b.amt + float32(betAmt)
-	b.SetAmt(newAmt)
-}
-
-func (b *Cash) SubBetAmt(bet binding.String) {
-	s, _ := bet.Get()
-	betAmt, _ := strconv.ParseFloat(s, 32)
-	newAmt := b.amt - float32(betAmt)
 	b.SetAmt(newAmt)
 }
 
@@ -199,4 +178,24 @@ func (b *Cash) String() string {
 func setAuto(bet binding.String, curAmt float32) {
 	betAmt := curAmt / 2
 	bet.Set(strconv.FormatFloat(float64(betAmt), 'f', 2, 32))
+}
+
+func cacheImages(animationFiles embed.FS) [][]image.Image {
+	images := make([][]image.Image, 6)
+	for j := 1; j <= 6; j++ {
+		images[j-1] = make([]image.Image, 0)
+		for i := 70; i <= 140; i++ {
+			fileName := fmt.Sprintf("media/Animation/roll-%d/%04d.png", j, i)
+			data, err := animationFiles.ReadFile(fileName)
+			if err != nil {
+				panic(err)
+			}
+			img, err := png.Decode(bytes.NewReader(data))
+			if err != nil {
+				panic(err)
+			}
+			images[j-1] = append(images[j-1], img)
+		}
+	}
+	return images
 }
