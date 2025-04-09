@@ -92,6 +92,13 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 		fyne.NewAnimation(4*time.Second, doAnimation).Start()
 	})
 
+	keys := make([]fyne.CanvasObject, 0)
+	for _, key := range []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "/", "AC", "Calc", "DEL"} {
+		b := widget.NewButton(" "+key+" ", func() {
+		})
+		keys = append(keys, b)
+	}
+
 	return container.NewVBox(
 		container.NewHBox(
 			layout.NewSpacer(),
@@ -99,6 +106,7 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 			img[right],
 			layout.NewSpacer(),
 		),
+		container.NewGridWithColumns(3, keys...),
 		rollButton,
 		result,
 	)
