@@ -37,8 +37,8 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 		img[i].ScaleMode = canvas.ImageScaleFastest
 	}
 
-	initialBank := float32(100.0)
-	bank := NewCash(100.0)
+	initialBank := float32(2000.0)
+	bank := NewCash(initialBank)
 	bankLabel := widget.NewLabelWithData(bank.amtString)
 	bet := binding.NewString()
 	bet.Set(strconv.FormatFloat(float64(initialBank)/2, 'f', 2, 32))
