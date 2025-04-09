@@ -1,9 +1,11 @@
 {
     "cSpell.words": [
+        "appversion",
+        "appversions",
         "fyne",
         "iossimulator",
         "NKWR",
-        "xcrun",
-        "simctl"
+        "simctl",
+        "xcrun"
     ]
 }

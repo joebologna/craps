@@ -13,3 +13,6 @@ dist:
 app_store:
 	../fyne/cmd/fyne/fyne package -work -os ios -certificate "Apple Distribution: Focused for Success, Inc. (2GC862GT48)" -profile "Craps App Store" -release
 	@echo open Xcode project, run gen_icons.sh, install the icons, update the project to use the Craps App Store provisioning profile, run Archive
+
+gen:
+	go run cmd/gen_appversion.go > appversion.go; go fmt appversion.go
