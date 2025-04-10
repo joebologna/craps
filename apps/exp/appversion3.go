@@ -41,7 +41,7 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 	bank := NewCash(initialBank)
 	bankLabel := widget.NewLabelWithData(bank.amtString)
 	bet := binding.NewString()
-	bet.Set(strconv.FormatInt(int64(initialBank)/2, 10))
+	bet.Set(Money(int64(initialBank) / 2).String())
 	betLabel := widget.NewLabelWithData(bet)
 
 	// the zero based value of the rolled die
@@ -66,7 +66,7 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 				bank.AddBetAmt(bet, true)
 				if bank.amt <= 0.0 {
 					bank.SetAmt(bank.initialBank)
-					bet.Set("0.00")
+					bet.Set((bank.initialBank / 2).String())
 					resultText += " Refreshed bank."
 				}
 			default:
@@ -80,8 +80,8 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 	rollButton = widget.NewButton("Roll", func() {
 		rollButton.Disable()
 		b, _ := bet.Get()
-		i, _ := strconv.ParseInt(b, 10, 64)
-		bet.Set(strconv.FormatInt(i, 10))
+		i := ToMoney(b)
+		bet.Set(i.String())
 		leftDie, rightDie = rand.Intn(6), rand.Intn(6)
 		resultString.Set("Rolling...")
 		fyne.NewAnimation(1*time.Second, doAnimation).Start()
@@ -137,11 +137,20 @@ func handleKey(key string, bet binding.String, bank *Cash) {
 }
 
 func canCover(s string, bank *Cash) bool {
-	amt, err := strconv.ParseFloat(s, 32)
-	return err == nil && amt <= float64(bank.amt)
+	amt := ToMoney(fromThousands(s))
+	return amt <= bank.amt
 }
 
 type Money int64
+
+func (m Money) String() string {
+	return toThousands(strconv.FormatInt(int64(m), 10))
+}
+
+func ToMoney(s string) Money {
+	i, _ := strconv.ParseInt(fromThousands(s), 10, 64)
+	return Money(i)
+}
 
 type Cash struct {
 	initialBank, amt Money
@@ -160,7 +169,7 @@ func NewCash(initialBank Money) *Cash {
 
 func (b *Cash) AddBetAmt(bet binding.String, neg bool) {
 	s, _ := bet.Get()
-	betAmt, _ := strconv.ParseInt(s, 10, 64)
+	betAmt := ToMoney(s)
 	if neg {
 		betAmt = -betAmt
 	}
@@ -174,12 +183,12 @@ func (b *Cash) SetAmt(amt Money) {
 }
 
 func (b *Cash) String() string {
-	return strconv.FormatInt(int64(b.amt), 10)
+	return b.amt.String()
 }
 
 func setAuto(bet binding.String, curAmt Money) {
 	betAmt := curAmt / 2
-	bet.Set(strconv.FormatInt(int64(betAmt), 10))
+	bet.Set(betAmt.String())
 }
 
 func cacheImages(animationFiles embed.FS) [][]image.Image {
@@ -200,4 +209,18 @@ func cacheImages(animationFiles embed.FS) [][]image.Image {
 		}
 	}
 	return images
+}
+
+func toThousands(s string) string {
+	var result []string
+	for len(s) > 3 {
+		result = append([]string{s[len(s)-3:]}, result...)
+		s = s[:len(s)-3]
+	}
+	result = append([]string{s}, result...)
+	return strings.Join(result, ",")
+}
+
+func fromThousands(s string) string {
+	return strings.ReplaceAll(s, ",", "")
 }
