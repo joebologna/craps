@@ -37,11 +37,11 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 		img[i].ScaleMode = canvas.ImageScaleFastest
 	}
 
-	initialBank := int64(2000)
+	initialBank := Money(2000)
 	bank := NewCash(initialBank)
 	bankLabel := widget.NewLabelWithData(bank.amtString)
 	bet := binding.NewString()
-	bet.Set(strconv.FormatInt(initialBank/2, 10))
+	bet.Set(strconv.FormatInt(int64(initialBank)/2, 10))
 	betLabel := widget.NewLabelWithData(bet)
 
 	// the zero based value of the rolled die
@@ -141,12 +141,14 @@ func canCover(s string, bank *Cash) bool {
 	return err == nil && amt <= float64(bank.amt)
 }
 
+type Money int64
+
 type Cash struct {
-	initialBank, amt int64
+	initialBank, amt Money
 	amtString        binding.String
 }
 
-func NewCash(initialBank int64) *Cash {
+func NewCash(initialBank Money) *Cash {
 	b := &Cash{
 		initialBank: initialBank,
 		amt:         initialBank,
@@ -162,22 +164,22 @@ func (b *Cash) AddBetAmt(bet binding.String, neg bool) {
 	if neg {
 		betAmt = -betAmt
 	}
-	newAmt := b.amt + betAmt
+	newAmt := b.amt + Money(betAmt)
 	b.SetAmt(newAmt)
 }
 
-func (b *Cash) SetAmt(amt int64) {
+func (b *Cash) SetAmt(amt Money) {
 	b.amt = amt
 	b.amtString.Set(b.String())
 }
 
 func (b *Cash) String() string {
-	return strconv.FormatInt(b.amt, 10)
+	return strconv.FormatInt(int64(b.amt), 10)
 }
 
-func setAuto(bet binding.String, curAmt int64) {
+func setAuto(bet binding.String, curAmt Money) {
 	betAmt := curAmt / 2
-	bet.Set(strconv.FormatInt(betAmt, 10))
+	bet.Set(strconv.FormatInt(int64(betAmt), 10))
 }
 
 func cacheImages(animationFiles embed.FS) [][]image.Image {
