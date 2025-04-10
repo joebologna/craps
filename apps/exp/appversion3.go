@@ -6,6 +6,7 @@ import (
 	"embed"
 	"fmt"
 	"image"
+	"image/color"
 	"image/png"
 	"strconv"
 	"strings"
@@ -20,13 +21,15 @@ import (
 	"golang.org/x/exp/rand"
 )
 
+var RED, GREEN = color.RGBA{255, 0, 0, 128}, color.RGBA{0, 255, 0, 128}
+
 func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 	initialMsg := "Welcome to Simple Craps."
 	images := cacheImages(animationFiles)
 
-	resultString := binding.NewString()
+	resultString := NewBS()
 	resultString.Set(initialMsg)
-	result := widget.NewLabelWithData(resultString)
+	result := NewThemedLabelWithData(resultString)
 
 	// widgets showing die animation side-by-side
 	img := make([]*canvas.Image, 2)
@@ -40,10 +43,14 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 
 	initialBank := Money(2000)
 	bank := NewCash(initialBank)
-	bankLabel := widget.NewLabelWithData(bank.amtString)
+	bankLabel := NewThemedLabelWithData(bank.amtString)
+	bankLabel.overlay.StrokeColor = GREEN
+	bankLabel.overlay.StrokeWidth = 2
 	bet := NewBS()
 	bet.Set(Money(int64(initialBank) / 2).String())
-	betLabel := widget.NewLabelWithData(bet)
+	betLabel := NewThemedLabelWithData(bet)
+	betLabel.overlay.StrokeColor = GREEN
+	betLabel.overlay.StrokeWidth = 2
 
 	// the zero based value of the rolled die
 	leftDie, rightDie := 0, 0
@@ -98,23 +105,35 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 		keys = append(keys, b)
 	}
 
-	bankHeading, betHeading := widget.NewLabel("Bank"), widget.NewLabel("Bet")
+	bankHeading, betHeading := NewThemedLabel("Bank"), NewThemedLabel("Bet")
 	bankHeading.Alignment, betHeading.Alignment = fyne.TextAlignCenter, fyne.TextAlignCenter
 	bankLabel.Alignment, betLabel.Alignment = fyne.TextAlignCenter, fyne.TextAlignCenter
+
 	result.Alignment = fyne.TextAlignCenter
-	return container.NewVBox(
-		container.NewHBox(
-			layout.NewSpacer(),
-			img[left],
-			img[right],
-			layout.NewSpacer(),
-		),
+	result.overlay.StrokeColor = GREEN
+	result.overlay.StrokeWidth = 2
+
+	bg := canvas.NewRectangle(color.Transparent)
+	bg.StrokeWidth = 2
+	bg.StrokeColor = color.RGBA{128, 128, 128, 128}
+
+	dice := container.NewHBox(
+		layout.NewSpacer(),
+		img[left],
+		img[right],
+		layout.NewSpacer(),
+	)
+
+	stuff := container.NewVBox(
+		dice,
 		container.NewGridWithColumns(3, keys...),
 		rollButton,
-		container.NewGridWithColumns(2, bankHeading, betHeading),
-		container.NewGridWithColumns(2, bankLabel, betLabel),
-		result,
+		container.NewGridWithColumns(2, bankHeading.Stack(), betHeading.Stack()),
+		container.NewGridWithColumns(2, bankLabel.Stack(), betLabel.Stack()),
+		result.Stack(),
 	)
+
+	return container.NewStack(container.NewVScroll(stuff), bg)
 }
 
 func updateDice(img []*canvas.Image, left int, images [][]image.Image, leftDie int, i int, right int, rightDie int) {
@@ -239,3 +258,24 @@ type BS struct{ binding.String }
 func NewBS() BS { return BS{binding.NewString()} }
 
 func (s BS) GetS() string { t, _ := s.Get(); return t }
+
+type ThemedLabel struct {
+	*widget.Label
+	overlay *canvas.Rectangle
+}
+
+func NewThemedLabel(text string) *ThemedLabel {
+	l := &ThemedLabel{Label: widget.NewLabel(text), overlay: canvas.NewRectangle(GREEN)}
+	l.overlay.StrokeWidth = 1
+	return l
+}
+
+func NewThemedLabelWithData(text BS) *ThemedLabel {
+	l := &ThemedLabel{Label: widget.NewLabelWithData(text), overlay: canvas.NewRectangle(color.Transparent)}
+	l.overlay.StrokeWidth = 1
+	return l
+}
+
+func (t *ThemedLabel) Stack() fyne.CanvasObject {
+	return container.NewStack(t.overlay, t.Label)
+}
