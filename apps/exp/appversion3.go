@@ -21,10 +21,11 @@ import (
 )
 
 func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
+	initialMsg := "Welcome to Simple Craps."
 	images := cacheImages(animationFiles)
 
 	resultString := binding.NewString()
-	resultString.Set("Please roll.")
+	resultString.Set(initialMsg)
 	result := widget.NewLabelWithData(resultString)
 
 	// widgets showing die animation side-by-side
@@ -53,7 +54,7 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 		i := int(tick * float32(len(images[0])-1))
 		updateDice(img, left, images, leftDie, i, right, rightDie)
 		if tick == 1.0 {
-			resultString.Set("Please roll.")
+			resultString.Set(initialMsg)
 			rollButton.Enable()
 			total := leftDie + 1 + rightDie + 1 // Dice values are 1-indexed
 			resultText := fmt.Sprintf("You rolled: %d", total)
@@ -93,6 +94,10 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 		keys = append(keys, b)
 	}
 
+	bankHeading, betHeading := widget.NewLabel("Bank"), widget.NewLabel("Bet")
+	bankHeading.Alignment, betHeading.Alignment = fyne.TextAlignCenter, fyne.TextAlignCenter
+	bankLabel.Alignment, betLabel.Alignment = fyne.TextAlignCenter, fyne.TextAlignCenter
+	result.Alignment = fyne.TextAlignCenter
 	return container.NewVBox(
 		container.NewHBox(
 			layout.NewSpacer(),
@@ -102,9 +107,9 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 		),
 		container.NewGridWithColumns(3, keys...),
 		rollButton,
+		container.NewGridWithColumns(2, bankHeading, betHeading),
+		container.NewGridWithColumns(2, bankLabel, betLabel),
 		result,
-		bankLabel,
-		betLabel,
 	)
 }
 
