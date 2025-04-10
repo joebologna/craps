@@ -41,7 +41,7 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 	initialBank := Money(2000)
 	bank := NewCash(initialBank)
 	bankLabel := widget.NewLabelWithData(bank.amtString)
-	bet := binding.NewString()
+	bet := NewBS()
 	bet.Set(Money(int64(initialBank) / 2).String())
 	betLabel := widget.NewLabelWithData(bet)
 
@@ -61,14 +61,18 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 			switch total {
 			case 7, 11:
 				resultText += ". You Win!"
-				bank.AddBetAmt(bet, false)
+				bank.AddBetAmt(bet, true)
 			case 2, 3, 12:
 				resultText += ". You Lose."
-				bank.AddBetAmt(bet, true)
+				bank.AddBetAmt(bet, false)
+				curBet := ToMoney(bet.GetS())
 				if bank.amt <= 0.0 {
 					bank.SetAmt(bank.initialBank)
 					bet.Set((bank.initialBank / 2).String())
 					resultText += " Refreshed bank."
+				} else if curBet > bank.amt {
+					// limit the bet to the amount of money left in the bank
+					bet.Set(bank.String())
 				}
 			default:
 				resultText += ". Push."
@@ -120,7 +124,7 @@ func updateDice(img []*canvas.Image, left int, images [][]image.Image, leftDie i
 	img[right].Refresh()
 }
 
-func handleKey(key string, bet binding.String, bank *Cash) {
+func handleKey(key string, bet BS, bank *Cash) {
 	s, _ := bet.Get()
 	if key == "DEL" {
 		if len(s) > 0 {
@@ -159,23 +163,23 @@ func ToMoney(s string) Money {
 
 type Cash struct {
 	initialBank, amt Money
-	amtString        binding.String
+	amtString        BS
 }
 
 func NewCash(initialBank Money) *Cash {
 	b := &Cash{
 		initialBank: initialBank,
 		amt:         initialBank,
-		amtString:   binding.NewString(),
+		amtString:   NewBS(),
 	}
 	b.amtString.Set(b.String())
 	return b
 }
 
-func (b *Cash) AddBetAmt(bet binding.String, neg bool) {
+func (b *Cash) AddBetAmt(bet BS, pos bool) {
 	s, _ := bet.Get()
 	betAmt := ToMoney(s)
-	if neg {
+	if !pos {
 		betAmt = -betAmt
 	}
 	newAmt := b.amt + Money(betAmt)
@@ -191,7 +195,7 @@ func (b *Cash) String() string {
 	return b.amt.String()
 }
 
-func setAuto(bet binding.String, curAmt Money) {
+func setAuto(bet BS, curAmt Money) {
 	betAmt := curAmt / 2
 	bet.Set(betAmt.String())
 }
@@ -229,3 +233,9 @@ func toThousands(s string) string {
 func fromThousands(s string) string {
 	return strings.ReplaceAll(s, ",", "")
 }
+
+type BS struct{ binding.String }
+
+func NewBS() BS { return BS{binding.NewString()} }
+
+func (s BS) GetS() string { t, _ := s.Get(); return t }
