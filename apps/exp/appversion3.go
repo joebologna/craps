@@ -37,20 +37,18 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 	left, right := 0, 1
 	for i := range []int{left, right} {
 		img[i] = canvas.NewImageFromImage(images[i][len(images)-1])
-		img[i].FillMode = canvas.ImageFillOriginal
-		img[i].ScaleMode = canvas.ImageScaleFastest
+		img[i].FillMode, img[i].ScaleMode = canvas.ImageFillOriginal, canvas.ImageScaleFastest
 	}
 
 	initialBank := Money(2000)
 	bank := NewCash(initialBank)
 	bankLabel := NewThemedLabelWithData(bank.amtString)
-	bankLabel.overlay.StrokeColor = GREEN
-	bankLabel.overlay.StrokeWidth = 2
+	bankLabel.overlay.StrokeColor, bankLabel.overlay.StrokeWidth = GREEN, 2
+
 	bet := NewBS()
 	bet.Set(Money(int64(initialBank) / 2).String())
 	betLabel := NewThemedLabelWithData(bet)
-	betLabel.overlay.StrokeColor = GREEN
-	betLabel.overlay.StrokeWidth = 2
+	betLabel.overlay.StrokeColor, betLabel.overlay.StrokeWidth = GREEN, 2
 
 	// the zero based value of the rolled die
 	leftDie, rightDie := 0, 0
@@ -110,12 +108,10 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 	bankLabel.Alignment, betLabel.Alignment = fyne.TextAlignCenter, fyne.TextAlignCenter
 
 	result.Alignment = fyne.TextAlignCenter
-	result.overlay.StrokeColor = GREEN
-	result.overlay.StrokeWidth = 2
+	result.overlay.StrokeColor, result.overlay.StrokeWidth = GREEN, 2
 
 	bg := canvas.NewRectangle(color.Transparent)
-	bg.StrokeWidth = 2
-	bg.StrokeColor = color.RGBA{128, 128, 128, 128}
+	bg.StrokeWidth, bg.StrokeColor = 2, color.RGBA{128, 128, 128, 128}
 
 	dice := container.NewHBox(
 		layout.NewSpacer(),
