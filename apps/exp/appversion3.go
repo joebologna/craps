@@ -3,6 +3,7 @@ package exp
 import (
 	"bytes"
 	"craps/opts"
+	"craps/point"
 	"embed"
 	"fmt"
 	"image"
@@ -23,28 +24,31 @@ import (
 
 var RED, GREEN = color.RGBA{255, 0, 0, 128}, color.RGBA{0, 255, 0, 128}
 
-// func makeLabelWithData(title string, filled bool) (bs BS, l *ThemedLabel) {
-// 	bs = NewBS()
-// 	bs.Set(title)
-// 	l = NewThemedLabelWithData(bs)
-// 	l.Alignment = fyne.TextAlignCenter
-// 	if filled {
-// 		l.overlay.FillColor, l.overlay.StrokeWidth = GREEN, 2
-// 	} else {
-// 		l.overlay.StrokeColor, l.overlay.StrokeWidth = GREEN, 2
-// 	}
-// 	return
-// }
+func makeLabelWithData(title string, filled bool) (bs BS, l *ThemedLabel) {
+	bs = NewBS()
+	bs.Set(title)
+	l = NewThemedLabelWithData(bs)
+	l.Alignment = fyne.TextAlignCenter
+	if filled {
+		l.overlay.FillColor, l.overlay.StrokeWidth = GREEN, 2
+	} else {
+		l.overlay.StrokeColor, l.overlay.StrokeWidth = GREEN, 2
+	}
+	return
+}
 
 func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 
 	initialMsg := "Welcome to Simple Craps."
 	images := cacheImages(animationFiles)
 
-	// pt := point.NewPointTracker()
+	pt := point.NewPointTracker()
 
-	// ptLabelString, ptLabel := makeLabelWithData(pt.CurState.String(), false)
-	// pLabelString, pLabel := makeLabelWithData(pt.CurPoint.String(), false)
+	ptLabelString, ptLabel := makeLabelWithData(pt.CurState.String(), false)
+	pLabelString, pLabel := makeLabelWithData(pt.CurPoint.String(), false)
+	playerLabelString, playerLabel := makeLabelWithData(pt.NewPlayer.String(), false)
+	ptLabelString.Set(pt.CurState.String())
+	pLabelString.Set(pt.CurPoint.String())
 
 	resultString := NewBS()
 	resultString.Set(initialMsg)
@@ -87,11 +91,16 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 			rollButton.Enable()
 			total := leftDie + 1 + rightDie + 1 // Dice values are 1-indexed
 			resultText := fmt.Sprintf("You rolled: %d", total)
-			switch total {
-			case 7, 11:
+			pt.SetPoint(total)
+			switch pt.CurState {
+			case point.COME_OUT_ROLL:
+				pt = point.NewPointTracker()
+			case point.WIN:
+				pt = point.NewPointTracker()
 				resultText += ". You Win!"
 				bank.AddBetAmt(bet, true)
-			case 2, 3, 12:
+			case point.LOSE:
+				pt = point.NewPointTracker()
 				resultText += ". You Lose."
 				bank.AddBetAmt(bet, false)
 				curBet := ToMoney(bet.GetS())
@@ -105,7 +114,11 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 				}
 			default:
 				resultText += ". Roll again."
+
 			}
+			ptLabelString.Set(pt.CurState.String())
+			pLabelString.Set(pt.CurPoint.String())
+			playerLabelString.Set(pt.NewPlayer.String())
 			resultString.Set(resultText)
 		}
 	}
@@ -149,7 +162,7 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 		container.NewGridWithColumns(3, keys...),
 		rollButton,
 		result.Stack(),
-		// container.NewGridWithColumns(2, pLabel.Stack(), ptLabel.Stack()),
+		container.NewGridWithColumns(3, playerLabel.Stack(), ptLabel.Stack(), pLabel.Stack()),
 		container.NewGridWithColumns(2, bankHeading.Stack(), betHeading.Stack()),
 		container.NewGridWithColumns(2, bankLabel.Stack(), betLabel.Stack()),
 	)

@@ -8,11 +8,6 @@ type Point struct {
 	Value int
 }
 
-// use PointTracker for this
-// func (p *Point) SetPoint(newPoint int) {
-// 	p.Value = newPoint
-// }
-
 func (p Point) String() string {
 	if p == NO_POINT {
 		return "No Point"
@@ -44,8 +39,15 @@ func (p PointState) String() string {
 	}
 }
 
+type PlayerStatus bool
+
+const (
+	NEW_PLAYER PlayerStatus = true
+	CUR_PLAYER              = false
+)
+
 type PointTracker struct {
-	NewPlayer bool
+	NewPlayer PlayerStatus
 	CurState  PointState
 	CurPoint  Point
 }
@@ -88,5 +90,13 @@ func (pt *PointTracker) SetPoint(roll int) {
 			pt.CurPoint = NO_POINT
 		}
 		// else push.
+	}
+}
+
+func (p PlayerStatus) String() string {
+	if p {
+		return "New Player"
+	} else {
+		return "Current Player"
 	}
 }
