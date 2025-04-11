@@ -1,4 +1,4 @@
-package main
+package point
 
 import "strconv"
 
@@ -12,7 +12,10 @@ func (p *Point) SetPoint(newPoint int) {
 	p.Value = newPoint
 }
 
-func (p *Point) String() string {
+func (p Point) String() string {
+	if p == NO_POINT {
+		return "No Point"
+	}
 	return strconv.FormatInt(int64(p.Value), 10)
 }
 
@@ -25,13 +28,29 @@ const (
 	LOSE
 )
 
+func (p PointState) String() string {
+	switch p {
+	case COME_OUT_ROLL:
+		return "Come out Roll"
+	case POINT_SET:
+		return "Point Set"
+	case WIN:
+		return "Win"
+	case LOSE:
+		return "Lose"
+	default:
+		return "Unknown"
+	}
+}
+
 type PointTracker struct {
-	CurState PointState
-	CurPoint Point
+	NewPlayer bool
+	CurState  PointState
+	CurPoint  Point
 }
 
 func NewPointTracker() *PointTracker {
-	return &PointTracker{COME_OUT_ROLL, NO_POINT}
+	return &PointTracker{true, COME_OUT_ROLL, NO_POINT}
 }
 
 func (pt *PointTracker) SetPoint(roll int) {
