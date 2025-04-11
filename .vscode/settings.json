@@ -6,6 +6,7 @@
         "iossimulator",
         "NKWR",
         "simctl",
+        "stretchr",
         "xcrun"
     ]
 }
