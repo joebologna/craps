@@ -24,12 +24,22 @@ import (
 var RED, GREEN = color.RGBA{255, 0, 0, 128}, color.RGBA{0, 255, 0, 128}
 
 func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
+
 	initialMsg := "Welcome to Simple Craps."
 	images := cacheImages(animationFiles)
 
 	resultString := NewBS()
 	resultString.Set(initialMsg)
 	result := NewThemedLabelWithData(resultString)
+
+	// infoString := NewBS()
+	// info := widget.NewEntryWithData(infoString)
+	// info.MultiLine = true
+	// info.Wrapping = fyne.TextWrapBreak
+	// info.SetMinRowsVisible(6)
+	// info.Validator = nil
+	// d, _ := os.Getwd()
+	// infoString.Set(d)
 
 	// widgets showing die animation side-by-side
 	img := make([]*canvas.Image, 2)
@@ -41,6 +51,10 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 	}
 
 	initialBank := Money(2000)
+	savedBank := fyne.CurrentApp().Preferences().Int("bank")
+	if savedBank != 0 {
+		initialBank = Money(savedBank)
+	}
 	bank := NewCash(initialBank)
 	bankLabel := NewThemedLabelWithData(bank.amtString)
 	bankLabel.overlay.StrokeColor, bankLabel.overlay.StrokeWidth = GREEN, 2
@@ -98,7 +112,7 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 	})
 
 	keys := make([]fyne.CanvasObject, 0)
-	for _, key := range []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", " ", "0", " ", "AC", "Auto", "DEL"} {
+	for _, key := range []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", " ", "0", " ", "AC", "Bet 1/2", "DEL"} {
 		b := widget.NewButton(" "+key+" ", func() { handleKey(key, bet, bank) })
 		keys = append(keys, b)
 	}
@@ -127,6 +141,7 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 		container.NewGridWithColumns(2, bankHeading.Stack(), betHeading.Stack()),
 		container.NewGridWithColumns(2, bankLabel.Stack(), betLabel.Stack()),
 		result.Stack(),
+		// info,
 	)
 
 	return container.NewStack(container.NewVScroll(stuff), bg)
@@ -150,13 +165,13 @@ func handleKey(key string, bet BS, bank *Cash) {
 		}
 	} else if key == "AC" {
 		bet.Set("")
-	} else if strings.ContainsAny(key, "0123456789.") {
+	} else if key == "Bet 1/2" {
+		setAuto(bet, bank.amt)
+	} else if strings.ContainsAny(key[0:1], "0123456789.") {
 		s += key
 		if canCover(s, bank) {
 			bet.Set(s)
 		}
-	} else if key == "Auto" {
-		setAuto(bet, bank.amt)
 	}
 }
 
@@ -203,6 +218,7 @@ func (b *Cash) AddBetAmt(bet BS, pos bool) {
 
 func (b *Cash) SetAmt(amt Money) {
 	b.amt = amt
+	fyne.CurrentApp().Preferences().SetInt("bank", int(amt))
 	b.amtString.Set(b.String())
 }
 
