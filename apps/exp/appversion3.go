@@ -135,7 +135,7 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 	})
 
 	keys := make([]fyne.CanvasObject, 0)
-	for _, key := range []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", " ", "0", " ", "AC", "Bet 1/2", "DEL"} {
+	for _, key := range []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "AC", "0", "DEL", "Bet 1/4", "Bet 1/2", "Bet All"} {
 		b := widget.NewButton(" "+key+" ", func() { handleKey(key, bet, bank) })
 		keys = append(keys, b)
 	}
@@ -189,7 +189,11 @@ func handleKey(key string, bet BS, bank *Cash) {
 	} else if key == "AC" {
 		bet.Set("")
 	} else if key == "Bet 1/2" {
-		setAuto(bet, bank.amt)
+		setAuto(bet, bank.amt, 2)
+	} else if key == "Bet 1/4" {
+		setAuto(bet, bank.amt, 4)
+	} else if key == "Bet All" {
+		setAuto(bet, bank.amt, 1)
 	} else if strings.ContainsAny(key[0:1], "0123456789.") {
 		s += key
 		if canCover(s, bank) {
@@ -249,8 +253,11 @@ func (b *Cash) String() string {
 	return b.amt.String()
 }
 
-func setAuto(bet BS, curAmt Money) {
-	betAmt := curAmt / 2
+func setAuto(bet BS, curAmt Money, factor Money) {
+	if factor == 0 {
+		factor = 1
+	}
+	betAmt := curAmt / factor
 	bet.Set(betAmt.String())
 }
 
