@@ -14,7 +14,7 @@ type CustomTheme struct {
 
 func (c CustomTheme) Size(name fyne.ThemeSizeName) float32 {
 	if name == theme.SizeNameText {
-		return 20
+		return 18
 	}
 	return c.Theme.Size(name)
 }
