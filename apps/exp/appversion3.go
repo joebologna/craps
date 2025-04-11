@@ -23,14 +23,34 @@ import (
 
 var RED, GREEN = color.RGBA{255, 0, 0, 128}, color.RGBA{0, 255, 0, 128}
 
+func makeLabelWithData(title string, filled bool) (bs BS, l *ThemedLabel) {
+	bs = NewBS()
+	bs.Set(title)
+	l = NewThemedLabelWithData(bs)
+	l.Alignment = fyne.TextAlignCenter
+	if filled {
+		l.overlay.FillColor, l.overlay.StrokeWidth = GREEN, 2
+	} else {
+		l.overlay.StrokeColor, l.overlay.StrokeWidth = GREEN, 2
+	}
+	return
+}
+
 func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 
 	initialMsg := "Welcome to Simple Craps."
 	images := cacheImages(animationFiles)
 
+	// ptHeading, pHeading := NewThemedLabel("Tracker"), NewThemedLabel("Point")
+	// ptHeading.Alignment, pHeading.Alignment = fyne.TextAlignCenter, fyne.TextAlignCenter
+
+	_, ptLabel := makeLabelWithData("Come out Roll", false)
+	_, pLabel := makeLabelWithData("Point", false)
+
 	resultString := NewBS()
 	resultString.Set(initialMsg)
 	result := NewThemedLabelWithData(resultString)
+	result.overlay.FillColor = GREEN
 
 	// infoString := NewBS()
 	// info := widget.NewEntryWithData(infoString)
@@ -138,9 +158,11 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 		dice,
 		container.NewGridWithColumns(3, keys...),
 		rollButton,
+		result.Stack(),
+		// container.NewGridWithColumns(2, ptHeading.Stack(), pHeading.Stack()),
+		container.NewGridWithColumns(2, ptLabel.Stack(), pLabel.Stack()),
 		container.NewGridWithColumns(2, bankHeading.Stack(), betHeading.Stack()),
 		container.NewGridWithColumns(2, bankLabel.Stack(), betLabel.Stack()),
-		result.Stack(),
 		// info,
 	)
 
