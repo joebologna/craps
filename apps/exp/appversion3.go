@@ -23,43 +23,33 @@ import (
 
 var RED, GREEN = color.RGBA{255, 0, 0, 128}, color.RGBA{0, 255, 0, 128}
 
-func makeLabelWithData(title string, filled bool) (bs BS, l *ThemedLabel) {
-	bs = NewBS()
-	bs.Set(title)
-	l = NewThemedLabelWithData(bs)
-	l.Alignment = fyne.TextAlignCenter
-	if filled {
-		l.overlay.FillColor, l.overlay.StrokeWidth = GREEN, 2
-	} else {
-		l.overlay.StrokeColor, l.overlay.StrokeWidth = GREEN, 2
-	}
-	return
-}
+// func makeLabelWithData(title string, filled bool) (bs BS, l *ThemedLabel) {
+// 	bs = NewBS()
+// 	bs.Set(title)
+// 	l = NewThemedLabelWithData(bs)
+// 	l.Alignment = fyne.TextAlignCenter
+// 	if filled {
+// 		l.overlay.FillColor, l.overlay.StrokeWidth = GREEN, 2
+// 	} else {
+// 		l.overlay.StrokeColor, l.overlay.StrokeWidth = GREEN, 2
+// 	}
+// 	return
+// }
 
 func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 
 	initialMsg := "Welcome to Simple Craps."
 	images := cacheImages(animationFiles)
 
-	// ptHeading, pHeading := NewThemedLabel("Tracker"), NewThemedLabel("Point")
-	// ptHeading.Alignment, pHeading.Alignment = fyne.TextAlignCenter, fyne.TextAlignCenter
+	// pt := point.NewPointTracker()
 
-	_, ptLabel := makeLabelWithData("Come out Roll", false)
-	_, pLabel := makeLabelWithData("Point", false)
+	// ptLabelString, ptLabel := makeLabelWithData(pt.CurState.String(), false)
+	// pLabelString, pLabel := makeLabelWithData(pt.CurPoint.String(), false)
 
 	resultString := NewBS()
 	resultString.Set(initialMsg)
 	result := NewThemedLabelWithData(resultString)
 	result.overlay.FillColor = GREEN
-
-	// infoString := NewBS()
-	// info := widget.NewEntryWithData(infoString)
-	// info.MultiLine = true
-	// info.Wrapping = fyne.TextWrapBreak
-	// info.SetMinRowsVisible(6)
-	// info.Validator = nil
-	// d, _ := os.Getwd()
-	// infoString.Set(d)
 
 	// widgets showing die animation side-by-side
 	img := make([]*canvas.Image, 2)
@@ -114,7 +104,7 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 					bet.Set(bank.String())
 				}
 			default:
-				resultText += ". Push."
+				resultText += ". Roll again."
 			}
 			resultString.Set(resultText)
 		}
@@ -159,11 +149,9 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 		container.NewGridWithColumns(3, keys...),
 		rollButton,
 		result.Stack(),
-		// container.NewGridWithColumns(2, ptHeading.Stack(), pHeading.Stack()),
-		container.NewGridWithColumns(2, ptLabel.Stack(), pLabel.Stack()),
+		// container.NewGridWithColumns(2, pLabel.Stack(), ptLabel.Stack()),
 		container.NewGridWithColumns(2, bankHeading.Stack(), betHeading.Stack()),
 		container.NewGridWithColumns(2, bankLabel.Stack(), betLabel.Stack()),
-		// info,
 	)
 
 	return container.NewStack(container.NewVScroll(stuff), bg)
