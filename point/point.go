@@ -8,9 +8,10 @@ type Point struct {
 	Value int
 }
 
-func (p *Point) SetPoint(newPoint int) {
-	p.Value = newPoint
-}
+// use PointTracker for this
+// func (p *Point) SetPoint(newPoint int) {
+// 	p.Value = newPoint
+// }
 
 func (p Point) String() string {
 	if p == NO_POINT {
@@ -59,24 +60,32 @@ func (pt *PointTracker) SetPoint(roll int) {
 		case 7:
 			fallthrough
 		case 11:
+			pt.NewPlayer = true
 			pt.CurState = WIN
+			pt.CurPoint = NO_POINT
 		case 2:
 			fallthrough
 		case 3:
 			fallthrough
 		case 12:
+			pt.NewPlayer = true
 			pt.CurState = LOSE
 			pt.CurPoint = NO_POINT
 		default:
+			pt.NewPlayer = false
 			pt.CurState = POINT_SET
 			pt.CurPoint = Point{roll}
 		}
 	} else if pt.CurState == POINT_SET {
 		p := Point{roll}
 		if pt.CurPoint == p {
+			pt.NewPlayer = true
 			pt.CurState = WIN
+			pt.CurPoint = NO_POINT
 		} else if roll == 7 {
+			pt.NewPlayer = true
 			pt.CurState = LOSE
+			pt.CurPoint = NO_POINT
 		}
 		// else push.
 	}
