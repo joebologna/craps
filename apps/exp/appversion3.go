@@ -9,6 +9,7 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -157,6 +158,17 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 		layout.NewSpacer(),
 	)
 
+	reset := func() {
+		pt = point.NewPointTracker()
+		initialBank = Money(2000)
+		bet.Set(Money(int64(initialBank) / 2).String())
+		savedBank = int(initialBank)
+		bank = NewCash(initialBank)
+		bank.SetAmt(initialBank)
+		bankLabel.Refresh()
+		os.Exit(0)
+	}
+
 	stuff := container.NewVBox(
 		dice,
 		container.NewGridWithColumns(3, keys...),
@@ -165,6 +177,7 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 		container.NewGridWithColumns(3, playerLabel.Stack(), ptLabel.Stack(), pLabel.Stack()),
 		container.NewGridWithColumns(2, bankHeading.Stack(), betHeading.Stack()),
 		container.NewGridWithColumns(2, bankLabel.Stack(), betLabel.Stack()),
+		widget.NewButton("Reset", reset),
 	)
 
 	return container.NewStack(container.NewVScroll(stuff), bg)
