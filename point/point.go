@@ -95,9 +95,10 @@ func (pt *PointTracker) SetPoint(roll int) {
 		}
 		// else push.
 	}
-	pt.NewPlayer = true
-	pt.CurState = WIN
-	pt.CurPoint = NO_POINT
+	// hack - win every time for testing
+	// pt.NewPlayer = true
+	// pt.CurState = WIN
+	// pt.CurPoint = NO_POINT
 }
 
 func (p PlayerStatus) String() string {
