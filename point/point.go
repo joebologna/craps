@@ -46,48 +46,68 @@ const (
 	CUR_PLAYER              = false
 )
 
-type PointTracker struct {
+type BetTracker struct {
 	NewPlayer PlayerStatus
 	CurState  PointState
 	CurPoint  Point
+	PassBet   bool
 }
 
-func NewPointTracker() *PointTracker {
-	return &PointTracker{true, COME_OUT_ROLL, NO_POINT}
+func NewBetTracker() *BetTracker {
+	return &BetTracker{true, COME_OUT_ROLL, NO_POINT, true}
+}
+func (bt *BetTracker) SetPassBet(yesNo bool) {
+	bt.PassBet = yesNo
 }
 
-func (pt *PointTracker) SetPoint(roll int) {
-	if pt.CurState == COME_OUT_ROLL {
+func (bt *BetTracker) WinLose(won bool) {
+	if bt.PassBet {
+		if won {
+			bt.CurState = WIN
+		} else {
+			bt.CurState = LOSE
+		}
+	} else {
+		if !won {
+			bt.CurState = LOSE
+		} else {
+			bt.CurState = WIN
+		}
+	}
+}
+
+func (bt *BetTracker) SetPoint(roll int) {
+	if bt.CurState == COME_OUT_ROLL {
 		switch roll {
 		case 7:
 			fallthrough
 		case 11:
-			pt.NewPlayer = true
-			pt.CurState = WIN
-			pt.CurPoint = NO_POINT
+			bt.NewPlayer = true
+			bt.WinLose(true)
+			bt.CurPoint = NO_POINT
 		case 2:
 			fallthrough
 		case 3:
 			fallthrough
 		case 12:
-			pt.NewPlayer = true
-			pt.CurState = LOSE
-			pt.CurPoint = NO_POINT
+			bt.NewPlayer = true
+			bt.WinLose(false)
+			bt.CurPoint = NO_POINT
 		default:
-			pt.NewPlayer = false
-			pt.CurState = POINT_SET
-			pt.CurPoint = Point{roll}
+			bt.NewPlayer = false
+			bt.CurState = POINT_SET
+			bt.CurPoint = Point{roll}
 		}
-	} else if pt.CurState == POINT_SET {
+	} else if bt.CurState == POINT_SET {
 		p := Point{roll}
-		if pt.CurPoint == p {
-			pt.NewPlayer = true
-			pt.CurState = WIN
-			pt.CurPoint = NO_POINT
+		if bt.CurPoint == p {
+			bt.NewPlayer = true
+			bt.WinLose(true)
+			bt.CurPoint = NO_POINT
 		} else if roll == 7 {
-			pt.NewPlayer = true
-			pt.CurState = LOSE
-			pt.CurPoint = NO_POINT
+			bt.NewPlayer = true
+			bt.WinLose(false)
+			bt.CurPoint = NO_POINT
 		}
 		// else push.
 	}

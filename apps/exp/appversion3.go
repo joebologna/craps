@@ -24,31 +24,22 @@ import (
 
 var RED, GREEN = color.RGBA{255, 0, 0, 128}, color.RGBA{0, 255, 0, 128}
 
-func makeLabelWithData(title string, filled bool) (bs BS, l *ThemedLabel) {
-	bs = NewBS()
-	bs.Set(title)
-	l = NewThemedLabelWithData(bs)
-	l.Alignment = fyne.TextAlignCenter
-	if filled {
-		l.overlay.FillColor, l.overlay.StrokeWidth = GREEN, 2
-	} else {
-		l.overlay.StrokeColor, l.overlay.StrokeWidth = GREEN, 2
-	}
-	return
-}
-
 func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 
 	initialMsg := "Welcome to Simple Craps."
 	images := cacheImages(animationFiles)
 
-	pt := point.NewPointTracker()
+	bt := point.NewBetTracker()
 
-	ptLabelString, ptLabel := makeLabelWithData(pt.CurState.String(), false)
-	pLabelString, pLabel := makeLabelWithData(pt.CurPoint.String(), false)
-	playerLabelString, playerLabel := makeLabelWithData(pt.NewPlayer.String(), false)
-	ptLabelString.Set(pt.CurState.String())
-	pLabelString.Set(pt.CurPoint.String())
+	btLabelString, btLabel := makeLabelWithData(bt.CurState.String(), false)
+	pLabelString, pLabel := makeLabelWithData(bt.CurPoint.String(), false)
+	playerLabelString, playerLabel := makeLabelWithData(bt.NewPlayer.String(), false)
+	btLabelString.Set(bt.CurState.String())
+	pLabelString.Set(bt.CurPoint.String())
+
+	passBet := widget.NewCheck("Pass/Don't Pass", func(changed bool) {
+		bt.SetPassBet(changed)
+	})
 
 	resultString := NewBS()
 	resultString.Set(initialMsg)
@@ -73,6 +64,10 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 	bankLabel := NewThemedLabelWithData(bank.amtString)
 	bankLabel.overlay.StrokeColor, bankLabel.overlay.StrokeWidth = GREEN, 2
 
+	reset := widget.NewButton("Reset Bank", func() {
+		bank.SetAmt(2000)
+	})
+
 	bet := NewBS()
 	bet.Set(Money(int64(initialBank) / 2).String())
 	betLabel := NewThemedLabelWithData(bet)
@@ -91,16 +86,16 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 			rollButton.Enable()
 			total := leftDie + 1 + rightDie + 1 // Dice values are 1-indexed
 			resultText := fmt.Sprintf("You rolled: %d", total)
-			pt.SetPoint(total)
-			switch pt.CurState {
+			bt.SetPoint(total)
+			switch bt.CurState {
 			case point.COME_OUT_ROLL:
-				pt = point.NewPointTracker()
+				bt = point.NewBetTracker()
 			case point.WIN:
-				pt = point.NewPointTracker()
+				bt = point.NewBetTracker()
 				resultText += ". You Win!"
 				bank.AddBetAmt(bet, true)
 			case point.LOSE:
-				pt = point.NewPointTracker()
+				bt = point.NewBetTracker()
 				resultText += ". You Lose."
 				bank.AddBetAmt(bet, false)
 				curBet := ToMoney(bet.GetS())
@@ -116,9 +111,9 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 				resultText += ". Roll again."
 
 			}
-			ptLabelString.Set(pt.CurState.String())
-			pLabelString.Set(pt.CurPoint.String())
-			playerLabelString.Set(pt.NewPlayer.String())
+			btLabelString.Set(bt.CurState.String())
+			pLabelString.Set(bt.CurPoint.String())
+			playerLabelString.Set(bt.NewPlayer.String())
 			resultString.Set(resultText)
 		}
 	}
@@ -160,9 +155,9 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 	stuff := container.NewVBox(
 		dice,
 		container.NewGridWithColumns(3, keys...),
-		rollButton,
+		container.NewVBox(container.NewHBox(layout.NewSpacer(), passBet, layout.NewSpacer()), rollButton, reset),
 		result.Stack(),
-		container.NewGridWithColumns(3, playerLabel.Stack(), ptLabel.Stack(), pLabel.Stack()),
+		container.NewGridWithColumns(3, playerLabel.Stack(), btLabel.Stack(), pLabel.Stack()),
 		container.NewGridWithColumns(2, bankHeading.Stack(), betHeading.Stack()),
 		container.NewGridWithColumns(2, bankLabel.Stack(), betLabel.Stack()),
 	)
@@ -320,4 +315,17 @@ func NewThemedLabelWithData(text BS) *ThemedLabel {
 
 func (t *ThemedLabel) Stack() fyne.CanvasObject {
 	return container.NewStack(t.overlay, t.Label)
+}
+
+func makeLabelWithData(title string, filled bool) (bs BS, l *ThemedLabel) {
+	bs = NewBS()
+	bs.Set(title)
+	l = NewThemedLabelWithData(bs)
+	l.Alignment = fyne.TextAlignCenter
+	if filled {
+		l.overlay.FillColor, l.overlay.StrokeWidth = GREEN, 2
+	} else {
+		l.overlay.StrokeColor, l.overlay.StrokeWidth = GREEN, 2
+	}
+	return
 }

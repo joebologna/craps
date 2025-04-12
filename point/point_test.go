@@ -9,116 +9,161 @@ import (
 func TestComeOutRoll(t *testing.T) {
 	a := assert.New(t)
 
-	pt := NewPointTracker()
-	a.Equal("New Player", pt.NewPlayer.String())
-	a.Equal(COME_OUT_ROLL, pt.CurState)
-	a.Equal(NO_POINT, pt.CurPoint)
+	bt := NewBetTracker()
+	a.Equal("New Player", bt.NewPlayer.String())
+	a.Equal(COME_OUT_ROLL, bt.CurState)
+	a.Equal(NO_POINT, bt.CurPoint)
 
-	pt.SetPoint(4)
-	a.Equal("Current Player", pt.NewPlayer.String())
-	a.Equal(POINT_SET, pt.CurState)
-	a.Equal(Point{4}, pt.CurPoint)
+	bt.SetPoint(4)
+	a.Equal("Current Player", bt.NewPlayer.String())
+	a.Equal(POINT_SET, bt.CurState)
+	a.Equal(Point{4}, bt.CurPoint)
 
-	pt = NewPointTracker()
-	pt.SetPoint(5)
-	a.Equal("Current Player", pt.NewPlayer.String())
-	a.Equal(POINT_SET, pt.CurState)
-	a.Equal(Point{5}, pt.CurPoint)
+	bt = NewBetTracker()
+	bt.SetPoint(5)
+	a.Equal("Current Player", bt.NewPlayer.String())
+	a.Equal(POINT_SET, bt.CurState)
+	a.Equal(Point{5}, bt.CurPoint)
 
-	pt = NewPointTracker()
-	pt.SetPoint(6)
-	a.Equal("Current Player", pt.NewPlayer.String())
-	a.Equal(POINT_SET, pt.CurState)
-	a.Equal(Point{6}, pt.CurPoint)
+	bt = NewBetTracker()
+	bt.SetPoint(6)
+	a.Equal("Current Player", bt.NewPlayer.String())
+	a.Equal(POINT_SET, bt.CurState)
+	a.Equal(Point{6}, bt.CurPoint)
 
-	pt = NewPointTracker()
-	pt.SetPoint(8)
-	a.Equal("Current Player", pt.NewPlayer.String())
-	a.Equal(POINT_SET, pt.CurState)
-	a.Equal(Point{8}, pt.CurPoint)
+	bt = NewBetTracker()
+	bt.SetPoint(8)
+	a.Equal("Current Player", bt.NewPlayer.String())
+	a.Equal(POINT_SET, bt.CurState)
+	a.Equal(Point{8}, bt.CurPoint)
 
-	pt = NewPointTracker()
-	pt.SetPoint(9)
-	a.Equal("Current Player", pt.NewPlayer.String())
-	a.Equal(POINT_SET, pt.CurState)
-	a.Equal(Point{9}, pt.CurPoint)
+	bt = NewBetTracker()
+	bt.SetPoint(9)
+	a.Equal("Current Player", bt.NewPlayer.String())
+	a.Equal(POINT_SET, bt.CurState)
+	a.Equal(Point{9}, bt.CurPoint)
 
-	pt = NewPointTracker()
-	pt.SetPoint(10)
-	a.Equal("Current Player", pt.NewPlayer.String())
-	a.Equal(POINT_SET, pt.CurState)
-	a.Equal(Point{10}, pt.CurPoint)
+	bt = NewBetTracker()
+	bt.SetPoint(10)
+	a.Equal("Current Player", bt.NewPlayer.String())
+	a.Equal(POINT_SET, bt.CurState)
+	a.Equal(Point{10}, bt.CurPoint)
 }
 
-func TestWin(t *testing.T) {
+func TestWinPassBet(t *testing.T) {
 	a := assert.New(t)
 
-	pt := NewPointTracker()
-	a.Equal("New Player", pt.NewPlayer.String())
-	a.Equal(pt.CurState, COME_OUT_ROLL)
-	a.Equal(pt.CurPoint, NO_POINT)
+	bt := NewBetTracker()
+	a.Equal("New Player", bt.NewPlayer.String())
+	a.Equal(bt.CurState, COME_OUT_ROLL)
+	a.Equal(bt.CurPoint, NO_POINT)
 
-	pt.SetPoint(7)
-	a.Equal("New Player", pt.NewPlayer.String())
-	a.Equal(pt.CurState, WIN)
-	a.Equal(pt.CurPoint, NO_POINT)
+	bt.SetPoint(7)
+	a.Equal("New Player", bt.NewPlayer.String())
+	a.Equal(bt.CurState, WIN)
+	a.Equal(bt.CurPoint, NO_POINT)
 
-	pt.SetPoint(11)
-	a.Equal("New Player", pt.NewPlayer.String())
-	a.Equal(pt.CurState, WIN)
-	a.Equal(pt.CurPoint, NO_POINT)
+	bt.SetPoint(11)
+	a.Equal("New Player", bt.NewPlayer.String())
+	a.Equal(bt.CurState, WIN)
+	a.Equal(bt.CurPoint, NO_POINT)
 }
 
-func TestLose(t *testing.T) {
+func TestLosePassBet(t *testing.T) {
 	a := assert.New(t)
 
-	pt := NewPointTracker()
-	a.Equal("New Player", pt.NewPlayer.String())
-	a.Equal(pt.CurState, COME_OUT_ROLL)
-	a.Equal(pt.CurPoint, NO_POINT)
+	bt := NewBetTracker()
+	a.Equal("New Player", bt.NewPlayer.String())
+	a.Equal(bt.CurState, COME_OUT_ROLL)
+	a.Equal(bt.CurPoint, NO_POINT)
 
-	pt.SetPoint(2)
-	a.Equal("New Player", pt.NewPlayer.String())
-	a.Equal(pt.CurState, LOSE)
-	a.Equal(pt.CurPoint, NO_POINT)
+	bt.SetPoint(2)
+	a.Equal("New Player", bt.NewPlayer.String())
+	a.Equal(bt.CurState, LOSE)
+	a.Equal(bt.CurPoint, NO_POINT)
 
-	pt.SetPoint(3)
-	a.Equal("New Player", pt.NewPlayer.String())
-	a.Equal(pt.CurState, LOSE)
-	a.Equal(pt.CurPoint, NO_POINT)
+	bt.SetPoint(3)
+	a.Equal("New Player", bt.NewPlayer.String())
+	a.Equal(bt.CurState, LOSE)
+	a.Equal(bt.CurPoint, NO_POINT)
 
-	pt.SetPoint(12)
-	a.Equal("New Player", pt.NewPlayer.String())
-	a.Equal(pt.CurState, LOSE)
-	a.Equal(pt.CurPoint, NO_POINT)
+	bt.SetPoint(12)
+	a.Equal("New Player", bt.NewPlayer.String())
+	a.Equal(bt.CurState, LOSE)
+	a.Equal(bt.CurPoint, NO_POINT)
+}
+
+func TestWinNoPassBet(t *testing.T) {
+	a := assert.New(t)
+
+	bt := NewBetTracker()
+	bt.SetPassBet(false)
+	a.Equal("New Player", bt.NewPlayer.String())
+	a.Equal(bt.CurState, COME_OUT_ROLL)
+	a.Equal(bt.CurPoint, NO_POINT)
+
+	bt.SetPoint(7)
+	a.Equal("New Player", bt.NewPlayer.String())
+	a.Equal(bt.CurState, WIN)
+	a.Equal(bt.CurPoint, NO_POINT)
+
+	bt.SetPoint(11)
+	a.Equal("New Player", bt.NewPlayer.String())
+	a.Equal(bt.CurState, WIN)
+	a.Equal(bt.CurPoint, NO_POINT)
+}
+
+func TestLoseNoPassBet(t *testing.T) {
+	a := assert.New(t)
+
+	bt := NewBetTracker()
+	bt.SetPassBet(false)
+	a.Equal("New Player", bt.NewPlayer.String())
+	a.Equal(bt.CurState, COME_OUT_ROLL)
+	a.Equal(bt.CurPoint, NO_POINT)
+
+	bt.SetPoint(2)
+	a.Equal("New Player", bt.NewPlayer.String())
+	a.Equal(bt.CurState, LOSE)
+	a.Equal(bt.CurPoint, NO_POINT)
+
+	bt.SetPoint(3)
+	a.Equal("New Player", bt.NewPlayer.String())
+	a.Equal(bt.CurState, LOSE)
+	a.Equal(bt.CurPoint, NO_POINT)
+
+	bt.SetPoint(12)
+	a.Equal("New Player", bt.NewPlayer.String())
+	a.Equal(bt.CurState, LOSE)
+	a.Equal(bt.CurPoint, NO_POINT)
 }
 
 func TestString(t *testing.T) {
 	a := assert.New(t)
 
-	pt := NewPointTracker()
-	a.Equal("Come out Roll", pt.CurState.String())
+	bt := NewBetTracker()
+	a.Equal("Come out Roll", bt.CurState.String())
 
-	pt.SetPoint(4)
-	a.Equal("Point Set", pt.CurState.String())
+	bt.SetPoint(4)
+	a.Equal("Point Set", bt.CurState.String())
 
-	pt.SetPoint(4)
-	a.Equal("Win", pt.CurState.String())
+	bt.SetPoint(4)
+	a.Equal("Win", bt.CurState.String())
 
-	pt = NewPointTracker()
-	pt.SetPoint(4)
-	pt.SetPoint(7)
-	a.Equal("Lose", pt.CurState.String())
+	bt = NewBetTracker()
+	bt.SetPoint(4)
+	bt.SetPoint(7)
+	a.Equal("Lose", bt.CurState.String())
 
-	pt.CurState = LOSE + 1
-	a.Equal("Unknown", pt.CurState.String())
+	bt.CurState = LOSE + 1
+	a.Equal("Unknown", bt.CurState.String())
 }
 
 func TestPointString(t *testing.T) {
 	a := assert.New(t)
 
-	pt := NewPointTracker()
-	a.Equal("No Point", pt.CurPoint.String())
-	pt.SetPoint(4)
-	a.Equal("4", pt.CurPoint.String())
+	bt := NewBetTracker()
+	a.Equal("No Point", bt.CurPoint.String())
+	bt.SetPoint(4)
+	a.Equal("4", bt.CurPoint.String())
 }
