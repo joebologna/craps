@@ -9,7 +9,6 @@ import (
 	"image"
 	"image/color"
 	"image/png"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -95,13 +94,13 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 			pt.SetPoint(total)
 			switch pt.CurState {
 			case point.COME_OUT_ROLL:
-				pt = point.NewPointTracker()
+				pt.Reset()
 			case point.WIN:
-				pt = point.NewPointTracker()
+				pt.Reset()
 				resultText += ". You Win!"
 				bank.AddBetAmt(bet, true)
 			case point.LOSE:
-				pt = point.NewPointTracker()
+				pt.Reset()
 				resultText += ". You Lose."
 				bank.AddBetAmt(bet, false)
 				curBet := ToMoney(bet.GetS())
@@ -159,14 +158,12 @@ func App3(animationFiles embed.FS, opt opts.Options) *fyne.Container {
 	)
 
 	reset := func() {
-		pt = point.NewPointTracker()
+		pt.Reset()
 		initialBank = Money(2000)
-		bet.Set(Money(int64(initialBank) / 2).String())
 		savedBank = int(initialBank)
-		bank = NewCash(initialBank)
+		bank.Reset(bet, initialBank)
 		bank.SetAmt(initialBank)
 		bankLabel.Refresh()
-		os.Exit(0)
 	}
 
 	stuff := container.NewVBox(
@@ -244,6 +241,13 @@ func NewCash(initialBank Money) *Cash {
 	}
 	b.amtString.Set(b.String())
 	return b
+}
+
+func (b *Cash) Reset(bet BS, initialBank Money) {
+	b.initialBank = initialBank
+	b.SetAmt(initialBank)
+	half := initialBank / 2
+	bet.Set(half.String())
 }
 
 func (b *Cash) AddBetAmt(bet BS, pos bool) {

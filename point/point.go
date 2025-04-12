@@ -56,6 +56,10 @@ func NewPointTracker() *PointTracker {
 	return &PointTracker{true, COME_OUT_ROLL, NO_POINT}
 }
 
+func (pt *PointTracker) Reset() {
+	pt.NewPlayer, pt.CurState, pt.CurPoint = true, COME_OUT_ROLL, NO_POINT
+}
+
 func (pt *PointTracker) SetPoint(roll int) {
 	if pt.CurState == COME_OUT_ROLL {
 		switch roll {
@@ -91,6 +95,9 @@ func (pt *PointTracker) SetPoint(roll int) {
 		}
 		// else push.
 	}
+	pt.NewPlayer = true
+	pt.CurState = WIN
+	pt.CurPoint = NO_POINT
 }
 
 func (p PlayerStatus) String() string {
