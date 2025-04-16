@@ -146,12 +146,8 @@ func App1(animationFiles embed.FS, isDark bool) *fyne.Container {
 		fyne.NewAnimation(1*time.Second, doAnimation).Start()
 	})
 
-	overlay := canvas.NewRectangle(color.RGBA{0, 255, 0, 32})
-	if isDark {
-		overlay.StrokeColor = color.White
-	} else {
-		overlay.StrokeColor = color.Black
-	}
+	overlay := canvas.NewRectangle(color.Transparent)
+	overlay.StrokeColor = color.RGBA{0, 0, 255, 255}
 	overlay.StrokeWidth = 2
 	overlay.SetMinSize(fyne.NewSize(100, 20))
 	rollButtonWithOverlay := container.NewStack(
@@ -216,14 +212,15 @@ func setInfo(textBinding binding.String, pt *point.PointTracker) {
 	}
 }
 
-func InfoText(textBinding binding.String, isDark bool) (info *canvas.Text) {
-	textColor := color.Black
-	if isDark {
-		textColor = color.White
-	}
+func InfoText(textBinding binding.String, _ bool) (info *canvas.Text) {
+	// textColor := color.Black
+	// if isDark {
+	// 	textColor = color.White
+	// }
+	textColor := color.RGBA{0, 255, 0, 255}
 
 	info = canvas.NewText("", textColor)
-	info.TextSize = (3 * info.TextSize) / 4
+	// info.TextSize = (3 * info.TextSize) / 4
 	info.Alignment = fyne.TextAlignCenter
 	return info
 }
