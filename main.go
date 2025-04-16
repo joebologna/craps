@@ -14,12 +14,13 @@ var animationFiles embed.FS
 func main() {
 	myApp := app.New()
 	myApp.Settings().SetTheme(&CustomTheme{theme.DefaultTheme()})
+
 	myWindow := myApp.NewWindow("Craps")
 
 	screenSize := utils.GetScreenSize()
 	myWindow.Resize(screenSize)
 
-	stuff := AppVersion3.App(animationFiles)
+	stuff := AppVersion1.App(animationFiles, utils.IsDark(myApp.Settings()))
 
 	myWindow.SetContent(stuff)
 

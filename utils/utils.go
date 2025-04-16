@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/theme"
 )
 
 func GetDeviceType() (is_mobile, is_browser, is_desktop bool) {
@@ -23,4 +24,8 @@ func GetScreenSize() fyne.Size {
 		return fyne.NewSize(768, 1024)
 	}
 	return fyne.NewSize(768/2, 1024)
+}
+
+func IsDark(s fyne.Settings) bool {
+	return s.ThemeVariant() == theme.VariantDark
 }
