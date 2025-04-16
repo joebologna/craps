@@ -4,5 +4,5 @@ Website = "https://new-norm.com"
   Icon = "craps-icon.png"
   Name = "craps"
   ID = "com.focusedforsuccess.craps"
-  Version = "1.0"
-  Build = 44
+  Version = "1.1"
+  Build = 46

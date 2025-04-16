@@ -146,6 +146,19 @@ func App1(animationFiles embed.FS, isDark bool) *fyne.Container {
 		fyne.NewAnimation(1*time.Second, doAnimation).Start()
 	})
 
+	overlay := canvas.NewRectangle(color.RGBA{0, 255, 0, 32})
+	if isDark {
+		overlay.StrokeColor = color.White
+	} else {
+		overlay.StrokeColor = color.Black
+	}
+	overlay.StrokeWidth = 2
+	overlay.SetMinSize(fyne.NewSize(100, 20))
+	rollButtonWithOverlay := container.NewStack(
+		rollButton,
+		overlay,
+	)
+
 	keys := make([]fyne.CanvasObject, 0)
 	for _, key := range []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "AC", "0", "DEL", "Bet 1/4", "Bet 1/2", "Bet All"} {
 		b := widget.NewButton(" "+key+" ", func() { handleKey(key, bet, bank) })
@@ -183,7 +196,7 @@ func App1(animationFiles embed.FS, isDark bool) *fyne.Container {
 	stuff := container.NewVBox(
 		dice,
 		container.NewGridWithColumns(3, keys...),
-		rollButton,
+		rollButtonWithOverlay,
 		result.Stack(),
 		container.NewGridWithColumns(3, playerLabel.Stack(), ptLabel.Stack(), pLabel.Stack()),
 		container.NewGridWithColumns(2, bankHeading.Stack(), betHeading.Stack()),
