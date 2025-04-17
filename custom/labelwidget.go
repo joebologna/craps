@@ -10,8 +10,11 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
+var RED, GREEN, OFF_WHITE = color.RGBA{128, 0, 0, 255}, color.RGBA{0, 128, 0, 255}, color.RGBA{192, 192, 192, 255}
+
 type WidgetTheme struct {
 	LabelBorderColor, LabelTextColor color.Color
+	Scale                            float32
 }
 
 type LabelWidget struct {
@@ -39,9 +42,17 @@ func (w *LabelWidget) Refresh() {
 }
 
 func setTheme(label *canvas.Text, border *canvas.Rectangle, widgetTheme WidgetTheme, inverted bool) {
+	if widgetTheme.Scale == 0 {
+		widgetTheme.Scale = 1
+	}
 	border.FillColor = color.Transparent
 	border.StrokeWidth = 2
 	label.Alignment = fyne.TextAlignCenter
+	// label.Text = fmt.Sprintf("%.0f", label.TextSize)
+	if label.TextSize != 18 {
+		label.TextSize = 18
+	}
+	label.TextSize = label.TextSize * widgetTheme.Scale
 	isDark := fyne.CurrentApp().Settings().ThemeVariant() == theme.VariantDark
 	if isDark {
 		if inverted {
@@ -62,7 +73,7 @@ func setTheme(label *canvas.Text, border *canvas.Rectangle, widgetTheme WidgetTh
 			border.StrokeColor = color.Black
 		}
 	}
-	border.SetMinSize(fyne.NewSize(float32(len(label.Text)*int(label.TextSize/2)), float32(label.TextSize)*2))
+	border.SetMinSize(fyne.NewSize(float32(len(label.Text)*int(label.TextSize/2))*widgetTheme.Scale, float32(label.TextSize)*2*widgetTheme.Scale))
 }
 
 func (w *LabelWidget) CreateRenderer() fyne.WidgetRenderer {
