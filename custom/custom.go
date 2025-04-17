@@ -5,53 +5,41 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
-	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/widget"
+	"fyne.io/fyne/v2/theme"
 )
 
-type CustomLabel struct {
-	*canvas.Text
-	Tracker func()
-}
+type CustomLabel struct{ *canvas.Text }
 
-func NewCustomLabel(text string, tracker func()) *CustomLabel {
-	l := &CustomLabel{canvas.NewText(text, color.White), tracker}
-	l.Alignment = fyne.TextAlignCenter
+func NewCustomLabel(text string) *CustomLabel {
+	// assume Dark mode
+	var initialMode, curMode = fyne.CurrentApp().Settings().ThemeVariant(), fyne.CurrentApp().Settings().ThemeVariant()
 
+	// Don't know what the color is yet
+	label := &CustomLabel{canvas.NewText(text, color.Transparent)}
+	label.SetLabelTheme(initialMode)
+
+	// Color matches initial theme
 	fyne.CurrentApp().Lifecycle().SetOnStarted(func() {
-		l.Tracker()
+		if fyne.CurrentApp().Settings().ThemeVariant() != initialMode {
+			label.SetLabelTheme(fyne.CurrentApp().Settings().ThemeVariant())
+			curMode = fyne.CurrentApp().Settings().ThemeVariant()
+		}
 	})
 
+	// Color changes when theme has changed (the app must enter background then re-enter foreground for this to happen)
 	fyne.CurrentApp().Lifecycle().SetOnEnteredForeground(func() {
-		l.Tracker()
+		if fyne.CurrentApp().Settings().ThemeVariant() != curMode {
+			label.SetLabelTheme(fyne.CurrentApp().Settings().ThemeVariant())
+			curMode = fyne.CurrentApp().Settings().ThemeVariant()
+		}
 	})
-
-	return l
+	return label
 }
 
-type CustomButton struct {
-	*widget.Button
-	Overlay *canvas.Rectangle
-	Tracker func()
-	fyne.CanvasObject
-}
-
-func NewCustomButton(text string, tapped, tracker func()) *CustomButton {
-	o := canvas.NewRectangle(color.Transparent)
-	o.StrokeWidth = 2
-	o.StrokeColor = color.White
-	o.CornerRadius = 8
-	var c fyne.CanvasObject
-	b := &CustomButton{widget.NewButton(text, tapped), o, tracker, c}
-	b.CanvasObject = container.NewStack(b.Button, b.Overlay)
-
-	fyne.CurrentApp().Lifecycle().SetOnStarted(func() {
-		b.Tracker()
-	})
-
-	fyne.CurrentApp().Lifecycle().SetOnEnteredForeground(func() {
-		b.Tracker()
-	})
-
-	return b
+func (label *CustomLabel) SetLabelTheme(variant fyne.ThemeVariant) {
+	if variant == theme.VariantDark {
+		label.Text.Color = color.White // white text on dark background
+	} else {
+		label.Text.Color = color.Black // black text on light background
+	}
 }
