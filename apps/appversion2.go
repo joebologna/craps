@@ -7,7 +7,6 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/widget"
 )
 
 func App2(animationFiles embed.FS) *fyne.Container {
@@ -24,7 +23,7 @@ func App2(animationFiles embed.FS) *fyne.Container {
 	rc := container.NewCenter(container.NewVBox(
 		container.NewGridWithRows(2, l1, l2),
 		container.NewGridWithRows(2, l3, l4),
-		widget.NewButton("Push me", func() {
+		custom.NewButtonWidget("Push me", theme2, false, func() {
 			l3t.Set("pushed")
 		}),
 	))
