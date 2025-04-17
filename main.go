@@ -20,7 +20,7 @@ func main() {
 	screenSize := utils.GetScreenSize()
 	myWindow.Resize(screenSize)
 
-	stuff := AppVersion1.App(animationFiles, utils.IsDark(myApp.Settings()))
+	stuff := AppVersion2.App(myApp, animationFiles)
 
 	myWindow.SetContent(stuff)
 
