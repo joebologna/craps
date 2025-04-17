@@ -22,8 +22,6 @@ import (
 	"golang.org/x/exp/rand"
 )
 
-// TODO: Handle dark mode properly: the canvas.Text elements need to change color when dark mode changes, this includes when the app is started. To deal with this, a mode sensitive widget is needed for canvas.Text elements.
-
 var RED, GREEN = color.RGBA{255, 0, 0, 128}, color.RGBA{0, 255, 0, 128}
 
 func makeLabelWithData(title string, filled bool) (bs BS, l *ThemedLabel) {
@@ -39,7 +37,7 @@ func makeLabelWithData(title string, filled bool) (bs BS, l *ThemedLabel) {
 	return
 }
 
-func App1(a fyne.App, animationFiles embed.FS) *fyne.Container {
+func App1(animationFiles embed.FS) *fyne.Container {
 
 	initialMsg := "Welcome to Simple Craps."
 	images := cacheImages(animationFiles)
@@ -191,34 +189,6 @@ func App1(a fyne.App, animationFiles embed.FS) *fyne.Container {
 
 	setInfo(textBinding, pt)
 
-	var darkness *canvas.Text
-	if a.Settings().ThemeVariant() == theme.VariantDark {
-		darkness = canvas.NewText("Dark Mode", color.RGBA{255, 0, 0, 255})
-	} else {
-		darkness = canvas.NewText("Light Mode", color.RGBA{255, 0, 0, 255})
-	}
-
-	a.Lifecycle().SetOnExitedForeground(func() {
-		textBinding.Set("entered foreground")
-		if a.Settings().ThemeVariant() == theme.VariantDark {
-			darkness.Color = color.White
-			darkness.Text = "Dark Mode"
-		} else {
-			darkness.Color = color.Black
-			darkness.Text = "Light Mode"
-		}
-	})
-	a.Lifecycle().SetOnStarted(func() {
-		textBinding.Set("started")
-		if a.Settings().ThemeVariant() == theme.VariantDark {
-			darkness.Color = color.White
-			darkness.Text = "Dark Mode"
-		} else {
-			darkness.Color = color.Black
-			darkness.Text = "Light Mode"
-		}
-	})
-
 	stuff := container.NewVBox(
 		dice,
 		container.NewGridWithColumns(3, keys...),
@@ -227,11 +197,8 @@ func App1(a fyne.App, animationFiles embed.FS) *fyne.Container {
 		container.NewGridWithColumns(3, playerLabel.Stack(), ptLabel.Stack(), pLabel.Stack()),
 		container.NewGridWithColumns(2, bankHeading.Stack(), betHeading.Stack()),
 		container.NewGridWithColumns(2, bankLabel.Stack(), betLabel.Stack()),
-		container.NewGridWithColumns(2, widget.NewButton("Reset the Bank", reset), widget.NewButton("Mode?", func() {
-			resultString.Set(fmt.Sprintf("Dark? +%t", fyne.CurrentApp().Settings().ThemeVariant() == theme.VariantDark))
-		})),
+		container.NewGridWithColumns(2, widget.NewButton("Reset the Bank", reset)),
 		container.NewPadded(info),
-		container.NewPadded(darkness),
 	)
 
 	return container.NewStack(container.NewVScroll(stuff), bg)

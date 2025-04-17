@@ -26,12 +26,12 @@ func (app AppVersion) String() string {
 	}
 }
 
-func (v AppVersion) App(a fyne.App,animationFiles embed.FS) (stuff *fyne.Container) {
+func (v AppVersion) App(animationFiles embed.FS) (stuff *fyne.Container) {
 	switch v {
 	case AppVersion1:
-		return apps.App1(a,animationFiles)
+		return apps.App1(animationFiles)
 	case AppVersion2:
-		return apps.App2(a,animationFiles)
+		return apps.App2(animationFiles)
 	default:
 		panic("unsupported version")
 	}
