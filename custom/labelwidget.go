@@ -1,11 +1,13 @@
 package custom
 
 import (
+	"craps/utils"
 	"image/color"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
@@ -32,6 +34,14 @@ func NewLabelWidget(text string, widgetTheme WidgetTheme, inverted bool) *LabelW
 	w := &LabelWidget{label: label, border: border, widgetTheme: widgetTheme, inverted: inverted}
 	w.ExtendBaseWidget(w)
 	return w
+}
+
+func NewLabelWidgetWithData(text utils.BS, widgetTheme WidgetTheme, inverted bool) *LabelWidget {
+	labelWidget := NewLabelWidget(text.GetS(), widgetTheme, inverted)
+	text.AddListener(binding.NewDataListener(func() {
+		labelWidget.label.Text = text.GetS()
+	}))
+	return labelWidget
 }
 
 func (w *LabelWidget) Refresh() {
