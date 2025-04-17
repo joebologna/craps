@@ -12,21 +12,26 @@ type AppVersion int
 
 const (
 	AppVersion1 AppVersion = iota
+	AppVersion2
 )
 
 func (app AppVersion) String() string {
 	switch app {
 	case AppVersion1:
 		return "V1"
+	case AppVersion2:
+		return "V2"
 	default:
 		return "Unknown"
 	}
 }
 
-func (v AppVersion) App(animationFiles embed.FS,isDark bool) (stuff *fyne.Container) {
+func (v AppVersion) App(a fyne.App,animationFiles embed.FS) (stuff *fyne.Container) {
 	switch v {
 	case AppVersion1:
-		return apps.App1(animationFiles, isDark)
+		return apps.App1(a,animationFiles)
+	case AppVersion2:
+		return apps.App2(a,animationFiles)
 	default:
 		panic("unsupported version")
 	}
