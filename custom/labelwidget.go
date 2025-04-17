@@ -10,35 +10,62 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
+type WidgetTheme struct {
+	LabelBorderColor, LabelTextColor color.Color
+}
+
 type LabelWidget struct {
 	widget.DisableableWidget
-	label  *canvas.Text
-	border *canvas.Rectangle
+	label       *canvas.Text
+	border      *canvas.Rectangle
+	widgetTheme WidgetTheme
+	inverted    bool
 }
 
-// CreateRenderer implements fyne.Widget.
-func (w *LabelWidget) CreateRenderer() fyne.WidgetRenderer {
-	c := container.NewStack(container.NewPadded(w.label), w.border)
-	return widget.NewSimpleRenderer(c)
+func NewLabelWidget(text string, widgetTheme WidgetTheme, inverted bool) *LabelWidget {
+	var label = canvas.NewText(text, color.White)
+	var border = canvas.NewRectangle(color.Transparent)
+	setTheme(label, border, widgetTheme, inverted)
+	w := &LabelWidget{label: label, border: border, widgetTheme: widgetTheme, inverted: inverted}
+	w.ExtendBaseWidget(w)
+	return w
 }
 
-// Refresh implements fyne.Widget.
-// Subtle: this method shadows the method (DisableableWidget).Refresh of LabelWidget.DisableableWidget.
 func (w *LabelWidget) Refresh() {
-	// th := w.Theme()
-	// v := fyne.CurrentApp().Settings().ThemeVariant()
-	w.label.Color = theme.Color(theme.ColorNameForeground)
-	w.border.StrokeColor, w.border.StrokeWidth = theme.Color(theme.ColorNameForeground), 2
+	setTheme(w.label, w.border, w.widgetTheme, w.inverted)
 	w.label.Refresh()
 	w.border.Refresh()
 	w.BaseWidget.Refresh()
 }
 
-func NewLabelWidget(text string) *LabelWidget {
-	l := canvas.NewText(text, theme.Color(theme.ColorNameForeground))
-	b := canvas.NewRectangle(color.Transparent)
-	b.StrokeColor, b.StrokeWidth = theme.Color(theme.ColorNameForeground), 2
-	w := &LabelWidget{label: l, border: b}
-	w.ExtendBaseWidget(w)
-	return w
+func setTheme(label *canvas.Text, border *canvas.Rectangle, widgetTheme WidgetTheme, inverted bool) {
+	border.FillColor = color.Transparent
+	border.StrokeWidth = 2
+	label.Alignment = fyne.TextAlignCenter
+	isDark := fyne.CurrentApp().Settings().ThemeVariant() == theme.VariantDark
+	if isDark {
+		if inverted {
+			border.FillColor = widgetTheme.LabelBorderColor
+			border.StrokeColor = widgetTheme.LabelTextColor
+			label.Color = color.Black
+		} else {
+			label.Color = widgetTheme.LabelBorderColor
+			border.StrokeColor = widgetTheme.LabelTextColor
+		}
+	} else {
+		if inverted {
+			border.FillColor = widgetTheme.LabelBorderColor
+			border.StrokeColor = color.Black
+			label.Color = color.White
+		} else {
+			label.Color = widgetTheme.LabelBorderColor
+			border.StrokeColor = color.Black
+		}
+	}
+	border.SetMinSize(fyne.NewSize(float32(len(label.Text)*int(label.TextSize/2)), float32(label.TextSize)*2))
+}
+
+func (w *LabelWidget) CreateRenderer() fyne.WidgetRenderer {
+	c := container.NewStack(w.border, container.NewPadded(w.label))
+	return widget.NewSimpleRenderer(c)
 }
