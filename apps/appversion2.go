@@ -1,34 +1,42 @@
 package apps
 
 import (
-	"craps/custom"
 	"embed"
 	"image/color"
 
 	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/theme"
 )
 
 func App2(animationFiles embed.FS) *fyne.Container {
-	var label *custom.CustomLabel
-	label = custom.NewCustomLabel("Dark Pref Label", func() {
-		if fyne.CurrentApp().Settings().ThemeVariant() == theme.VariantDark {
-			label.Text.Color = color.RGBA{255, 0, 0, 255}
-			label.Text.Text = "Dark Pref Label = Dark Mode"
-		} else {
-			label.Text.Color = color.RGBA{255, 0, 0, 255}
-			label.Text.Text = "Dark Pref Label = Light Mode"
+	// assume Dark mode
+	var initialMode, curMode = fyne.CurrentApp().Settings().ThemeVariant(), fyne.CurrentApp().Settings().ThemeVariant()
+
+	label := canvas.NewText("", color.Transparent)
+	setLabelTheme(label, initialMode)
+	fyne.CurrentApp().Lifecycle().SetOnStarted(func() {
+		if fyne.CurrentApp().Settings().ThemeVariant() != initialMode {
+			setLabelTheme(label, fyne.CurrentApp().Settings().ThemeVariant())
+			curMode = fyne.CurrentApp().Settings().ThemeVariant()
 		}
 	})
-
-	var button = custom.NewCustomButton("Button", func() {}, nil)
-	button.Tracker = func() {
-		if fyne.CurrentApp().Settings().ThemeVariant() == theme.VariantDark {
-			button.Overlay.StrokeColor = color.White
-		} else {
-			button.Overlay.StrokeColor = color.Black
+	fyne.CurrentApp().Lifecycle().SetOnEnteredForeground(func() {
+		if fyne.CurrentApp().Settings().ThemeVariant() != curMode {
+			setLabelTheme(label, fyne.CurrentApp().Settings().ThemeVariant())
+			curMode = fyne.CurrentApp().Settings().ThemeVariant()
 		}
+	})
+	return container.NewCenter(label)
+}
+
+func setLabelTheme(label *canvas.Text, variant fyne.ThemeVariant) {
+	if variant == theme.VariantDark {
+		label.Text = "Dark Mode"
+		label.Color = color.White // white text on dark background
+	} else {
+		label.Text = "Light Mode"
+		label.Color = color.Black // black text on light background
 	}
-	return container.NewCenter(label.Text)
 }
