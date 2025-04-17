@@ -10,24 +10,25 @@ import (
 	"fyne.io/fyne/v2/theme"
 )
 
-func App2(a fyne.App, animationFiles embed.FS) *fyne.Container {
-	stuff := custom.NewCustomLabel("Dark Pref Label", color.RGBA{255, 0, 0, 255})
-	stuff.Tracker = func() {
-		if a.Settings().ThemeVariant() == theme.VariantDark {
-			stuff.Color = color.White
-			stuff.Text.Text = "Dark Pref Label = Dark Mode"
+func App2(animationFiles embed.FS) *fyne.Container {
+	var label *custom.CustomLabel
+	label = custom.NewCustomLabel("Dark Pref Label", func() {
+		if fyne.CurrentApp().Settings().ThemeVariant() == theme.VariantDark {
+			label.Text.Color = color.RGBA{255, 0, 0, 255}
+			label.Text.Text = "Dark Pref Label = Dark Mode"
 		} else {
-			stuff.Color = color.Black
-			stuff.Text.Text = "Dark Pref Label = Light Mode"
+			label.Text.Color = color.RGBA{255, 0, 0, 255}
+			label.Text.Text = "Dark Pref Label = Light Mode"
+		}
+	})
+
+	var button = custom.NewCustomButton("Button", func() {}, nil)
+	button.Tracker = func() {
+		if fyne.CurrentApp().Settings().ThemeVariant() == theme.VariantDark {
+			button.Overlay.StrokeColor = color.White
+		} else {
+			button.Overlay.StrokeColor = color.Black
 		}
 	}
-
-	a.Lifecycle().SetOnStarted(func() {
-		stuff.Tracker()
-	})
-	a.Lifecycle().SetOnEnteredForeground(func() {
-		stuff.Tracker()
-	})
-
-	return container.NewBorder(nil, nil, nil, nil, stuff.Text)
+	return container.NewCenter(label.Text)
 }
