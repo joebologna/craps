@@ -90,6 +90,9 @@ func App1(animationFiles embed.FS) *fyne.Container {
 
 	info = InfoText(textBinding)
 
+	// indicate the bet should be cleared when the first key is pressed after a roll
+	var autoAC = true
+
 	// the zero based value of the rolled die
 	leftDie, rightDie := 0, 0
 
@@ -140,6 +143,7 @@ func App1(animationFiles embed.FS) *fyne.Container {
 	theme1 := custom.WidgetTheme{LabelBorderColor: custom.GREEN, LabelTextColor: custom.OFF_WHITE}
 	rollButton = custom.NewButtonWidget("Roll", theme1, func() {
 		rollButton.Disable()
+		autoAC = true
 		b, _ := bet.Get()
 		i := ToMoney(b)
 		bet.Set(i.String())
@@ -155,7 +159,7 @@ func App1(animationFiles embed.FS) *fyne.Container {
 
 	keys := make([]fyne.CanvasObject, 0)
 	for _, key := range []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "AC", "0", "DEL", "Bet 1/4", "Bet 1/2", "Bet All"} {
-		b := widget.NewButton(" "+key+" ", func() { handleKey(key, bet, bank) })
+		b := widget.NewButton(" "+key+" ", func() { handleKey(key, bet, bank, &autoAC) })
 		keys = append(keys, b)
 	}
 
@@ -223,8 +227,13 @@ func updateDice(img []*canvas.Image, left int, images [][]image.Image, leftDie i
 	img[right].Refresh()
 }
 
-func handleKey(key string, bet utils.BS, bank *Cash) {
-	s, _ := bet.Get()
+// TODO: call bet.Set("") when keys are pressed immediately after a roll to prevent lack of feedback and confusion
+func handleKey(key string, bet utils.BS, bank *Cash, autoAC *bool) {
+	if *autoAC {
+		bet.Set("")
+	}
+	*autoAC = false
+	s := bet.GetS()
 	if key == "DEL" {
 		if len(s) > 0 {
 			s = s[:len(s)-1]
@@ -235,11 +244,11 @@ func handleKey(key string, bet utils.BS, bank *Cash) {
 	} else if key == "AC" {
 		bet.Set("")
 	} else if key == "Bet 1/2" {
-		setAuto(bet, bank.amt, 2)
+		setAuto(bet, bank.amt, 2, autoAC)
 	} else if key == "Bet 1/4" {
-		setAuto(bet, bank.amt, 4)
+		setAuto(bet, bank.amt, 4, autoAC)
 	} else if key == "Bet All" {
-		setAuto(bet, bank.amt, 1)
+		setAuto(bet, bank.amt, 1, autoAC)
 	} else if strings.ContainsAny(key[0:1], "0123456789.") {
 		s += key
 		if canCover(s, bank) {
@@ -306,12 +315,13 @@ func (b *Cash) String() string {
 	return b.amt.String()
 }
 
-func setAuto(bet utils.BS, curAmt Money, factor Money) {
+func setAuto(bet utils.BS, curAmt Money, factor Money, autoAC *bool) {
 	if factor == 0 {
 		factor = 1
 	}
 	betAmt := curAmt / factor
 	bet.Set(betAmt.String())
+	*autoAC = true
 }
 
 func cacheImages(animationFiles embed.FS) [][]image.Image {

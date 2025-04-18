@@ -30,9 +30,9 @@ type LabelWidget struct {
 func NewLabelWidget(text string, widgetTheme WidgetTheme, inverted bool) *LabelWidget {
 	var label = canvas.NewText(text, color.White)
 	var border = canvas.NewRectangle(color.Transparent)
-	setTheme(label, border, widgetTheme, inverted)
 	w := &LabelWidget{label: label, border: border, widgetTheme: widgetTheme, inverted: inverted}
 	w.ExtendBaseWidget(w)
+	w.setTheme()
 	return w
 }
 
@@ -45,45 +45,45 @@ func NewLabelWidgetWithData(text utils.BS, widgetTheme WidgetTheme, inverted boo
 }
 
 func (w *LabelWidget) Refresh() {
-	setTheme(w.label, w.border, w.widgetTheme, w.inverted)
-	w.label.Refresh()
-	w.border.Refresh()
+	w.setTheme()
 	w.BaseWidget.Refresh()
 }
 
-func setTheme(label *canvas.Text, border *canvas.Rectangle, widgetTheme WidgetTheme, inverted bool) {
-	if widgetTheme.Scale == 0 {
-		widgetTheme.Scale = 1
+func (w *LabelWidget) setTheme() {
+	if w.widgetTheme.Scale == 0 {
+		w.widgetTheme.Scale = 1
 	}
-	border.FillColor = color.Transparent
-	border.StrokeWidth = 2
-	label.Alignment = fyne.TextAlignCenter
+	w.border.FillColor = color.Transparent
+	w.border.StrokeWidth = 2
+	w.label.Alignment = fyne.TextAlignCenter
 	// this happens on mobile for some reason
-	if label.TextSize < 10 {
-		label.TextSize = 18
+	if w.label.TextSize < 10 {
+		w.label.TextSize = 18
 	}
-	label.TextSize = label.TextSize * widgetTheme.Scale
+	w.label.TextSize = w.label.TextSize * w.widgetTheme.Scale
 	isDark := fyne.CurrentApp().Settings().ThemeVariant() == theme.VariantDark
 	if isDark {
-		if inverted {
-			border.FillColor = widgetTheme.LabelTextColor
-			border.StrokeColor = widgetTheme.LabelBorderColor
-			label.Color = color.Black
+		if w.inverted {
+			w.border.FillColor = w.widgetTheme.LabelTextColor
+			w.border.StrokeColor = w.widgetTheme.LabelBorderColor
+			w.label.Color = color.Black
 		} else {
-			label.Color = widgetTheme.LabelTextColor
-			border.StrokeColor = widgetTheme.LabelBorderColor
+			w.label.Color = w.widgetTheme.LabelTextColor
+			w.border.StrokeColor = w.widgetTheme.LabelBorderColor
 		}
 	} else {
-		if inverted {
-			border.FillColor = widgetTheme.LabelTextColor
-			border.StrokeColor = color.Black
-			label.Color = color.White
+		if w.inverted {
+			w.border.FillColor = w.widgetTheme.LabelTextColor
+			w.border.StrokeColor = color.Black
+			w.label.Color = color.White
 		} else {
-			label.Color = widgetTheme.LabelTextColor
-			border.StrokeColor = color.Black
+			w.label.Color = w.widgetTheme.LabelTextColor
+			w.border.StrokeColor = color.Black
 		}
 	}
-	border.SetMinSize(fyne.NewSize(float32(len(label.Text)*int(label.TextSize/2))*widgetTheme.Scale, float32(label.TextSize)*2*widgetTheme.Scale))
+	w.border.SetMinSize(fyne.NewSize(float32(len(w.label.Text)*int(w.label.TextSize/2))*w.widgetTheme.Scale, float32(w.label.TextSize)*2*w.widgetTheme.Scale))
+	w.border.Refresh()
+	w.label.Refresh()
 }
 
 func (w *LabelWidget) CreateRenderer() fyne.WidgetRenderer {
