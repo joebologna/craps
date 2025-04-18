@@ -19,21 +19,20 @@ type ButtonWidget struct {
 func NewButtonWidget(text string, widgetTheme WidgetTheme, tapped func()) *ButtonWidget {
 	var button = widget.NewButton(text, tapped)
 	var border = canvas.NewRectangle(color.Transparent)
-	setButtonTheme(border, widgetTheme)
-	w := &ButtonWidget{button: button, border: border}
+	w := &ButtonWidget{button: button, border: border, widgetTheme: widgetTheme}
 	w.ExtendBaseWidget(w)
+	w.setTheme()
 	return w
 }
 
 func (w *ButtonWidget) Refresh() {
-	setButtonTheme(w.border, w.widgetTheme)
-	w.button.Refresh()
-	w.border.Refresh()
+	w.setTheme()
 	w.BaseWidget.Refresh()
 }
 
-func setButtonTheme(border *canvas.Rectangle, widgetTheme WidgetTheme) {
-	border.StrokeColor, border.StrokeWidth, border.CornerRadius = widgetTheme.LabelBorderColor, 2, 6
+func (w *ButtonWidget) setTheme() {
+	w.border.StrokeColor, w.border.StrokeWidth, w.border.CornerRadius = w.widgetTheme.LabelBorderColor, 2, 6
+	w.border.Refresh()
 }
 
 func (w *ButtonWidget) CreateRenderer() fyne.WidgetRenderer {
