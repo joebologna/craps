@@ -25,16 +25,6 @@ func NewButtonWidget(text string, widgetTheme WidgetTheme, tapped func()) *Butto
 	return w
 }
 
-func (w *ButtonWidget) Enable() {
-	w.border.Show()
-	w.button.Enable()
-}
-
-func (w *ButtonWidget) Disable() {
-	w.border.Hide()
-	w.button.Disable()
-}
-
 func (w *ButtonWidget) Refresh() {
 	setButtonTheme(w.border, w.widgetTheme)
 	w.button.Refresh()
@@ -43,10 +33,20 @@ func (w *ButtonWidget) Refresh() {
 }
 
 func setButtonTheme(border *canvas.Rectangle, widgetTheme WidgetTheme) {
-	border.FillColor = widgetTheme.LabelBorderColor
+	border.StrokeColor, border.StrokeWidth, border.CornerRadius = widgetTheme.LabelBorderColor, 2, 6
 }
 
 func (w *ButtonWidget) CreateRenderer() fyne.WidgetRenderer {
-	c := container.NewStack(w.border, container.NewPadded(w.button))
+	c := container.NewStack(container.NewPadded(w.button), w.border)
 	return widget.NewSimpleRenderer(c)
+}
+
+func (w *ButtonWidget) Enable() {
+	w.border.Show()
+	w.button.Enable()
+}
+
+func (w *ButtonWidget) Disable() {
+	w.border.Hide()
+	w.button.Disable()
 }
