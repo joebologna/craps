@@ -201,7 +201,7 @@ func App1(animationFiles embed.FS) *fyne.Container {
 
 func setInfo(textBinding binding.String, pt *point.PointTracker) {
 	if pt.NewPlayer == point.NEW_PLAYER {
-		textBinding.Set("2, 3, 12 loses. 7, 11 wins, otherwise point is set")
+		textBinding.Set("2, 3, 12 loses. 7, 11 wins, otherwise point is set.")
 	} else {
 		textBinding.Set(fmt.Sprintf("7 loses, %d wins. Only Pass Line bets accepted.", pt.CurPoint.Value))
 	}

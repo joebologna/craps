@@ -58,8 +58,8 @@ func setTheme(label *canvas.Text, border *canvas.Rectangle, widgetTheme WidgetTh
 	border.FillColor = color.Transparent
 	border.StrokeWidth = 2
 	label.Alignment = fyne.TextAlignCenter
-	// label.Text = fmt.Sprintf("%.0f", label.TextSize)
-	if label.TextSize != 18 {
+	// this happens on mobile for some reason
+	if label.TextSize < 10 {
 		label.TextSize = 18
 	}
 	label.TextSize = label.TextSize * widgetTheme.Scale
