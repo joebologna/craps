@@ -4,3 +4,4 @@
 *.app
 *.zip
 fyne-work/
+__debug_bin*
