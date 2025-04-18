@@ -12,7 +12,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-var RED, GREEN, OFF_WHITE = color.RGBA{128, 0, 0, 255}, color.RGBA{0, 128, 0, 255}, color.RGBA{192, 192, 192, 255}
+var RED, GREEN, OFF_WHITE, WHITE = color.RGBA{128, 0, 0, 255}, color.RGBA{0, 128, 0, 255}, color.RGBA{192, 192, 192, 255}, color.RGBA{255, 255, 255, 255}
 
 type WidgetTheme struct {
 	LabelBorderColor, LabelTextColor color.Color
@@ -66,20 +66,20 @@ func setTheme(label *canvas.Text, border *canvas.Rectangle, widgetTheme WidgetTh
 	isDark := fyne.CurrentApp().Settings().ThemeVariant() == theme.VariantDark
 	if isDark {
 		if inverted {
-			border.FillColor = widgetTheme.LabelBorderColor
-			border.StrokeColor = widgetTheme.LabelTextColor
+			border.FillColor = widgetTheme.LabelTextColor
+			border.StrokeColor = widgetTheme.LabelBorderColor
 			label.Color = color.Black
 		} else {
-			label.Color = widgetTheme.LabelBorderColor
-			border.StrokeColor = widgetTheme.LabelTextColor
+			label.Color = widgetTheme.LabelTextColor
+			border.StrokeColor = widgetTheme.LabelBorderColor
 		}
 	} else {
 		if inverted {
-			border.FillColor = widgetTheme.LabelBorderColor
+			border.FillColor = widgetTheme.LabelTextColor
 			border.StrokeColor = color.Black
 			label.Color = color.White
 		} else {
-			label.Color = widgetTheme.LabelBorderColor
+			label.Color = widgetTheme.LabelTextColor
 			border.StrokeColor = color.Black
 		}
 	}

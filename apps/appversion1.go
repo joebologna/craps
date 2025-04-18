@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"craps/custom"
 	"craps/point"
+	"craps/utils"
 	"embed"
 	"fmt"
 	"image"
@@ -24,8 +25,8 @@ import (
 
 var RED, GREEN = color.RGBA{255, 0, 0, 128}, color.RGBA{0, 255, 0, 128}
 
-func makeLabelWithData(title string, filled bool) (bs BS, l *ThemedLabel) {
-	bs = NewBS()
+func makeLabelWithData(title string, filled bool) (bs utils.BS, l *ThemedLabel) {
+	bs = utils.NewBS()
 	bs.Set(title)
 	l = NewThemedLabelWithData(bs)
 	l.Alignment = fyne.TextAlignCenter
@@ -50,7 +51,7 @@ func App1(animationFiles embed.FS) *fyne.Container {
 	ptLabelString.Set(pt.CurState.String())
 	pLabelString.Set(pt.CurPoint.String())
 
-	resultString := NewBS()
+	resultString := utils.NewBS()
 	resultString.Set(initialMsg)
 	result := NewThemedLabelWithData(resultString)
 	result.overlay.FillColor = GREEN
@@ -73,7 +74,7 @@ func App1(animationFiles embed.FS) *fyne.Container {
 	bankLabel := NewThemedLabelWithData(bank.amtString)
 	bankLabel.overlay.StrokeColor, bankLabel.overlay.StrokeWidth = GREEN, 2
 
-	bet := NewBS()
+	bet := utils.NewBS()
 	bet.Set(Money(int64(initialBank) / 2).String())
 	betLabel := NewThemedLabelWithData(bet)
 	betLabel.overlay.StrokeColor, betLabel.overlay.StrokeWidth = GREEN, 2
@@ -162,9 +163,6 @@ func App1(animationFiles embed.FS) *fyne.Container {
 	bankHeading.Alignment, betHeading.Alignment = fyne.TextAlignCenter, fyne.TextAlignCenter
 	bankLabel.Alignment, betLabel.Alignment = fyne.TextAlignCenter, fyne.TextAlignCenter
 
-	result.Alignment = fyne.TextAlignCenter
-	result.overlay.StrokeColor, result.overlay.StrokeWidth = GREEN, 2
-
 	bg := canvas.NewRectangle(color.Transparent)
 	bg.StrokeWidth, bg.StrokeColor = 2, color.RGBA{128, 128, 128, 128}
 
@@ -194,7 +192,7 @@ func App1(animationFiles embed.FS) *fyne.Container {
 		container.NewGridWithColumns(3, playerLabel.Stack(), ptLabel.Stack(), pLabel.Stack()),
 		container.NewGridWithColumns(2, bankHeading.Stack(), betHeading.Stack()),
 		container.NewGridWithColumns(2, bankLabel.Stack(), betLabel.Stack()),
-		container.NewGridWithColumns(2, widget.NewButton("Reset the Bank", reset)),
+		widget.NewButton("Reset the Bank", reset),
 		container.NewPadded(info),
 	)
 
@@ -210,14 +208,10 @@ func setInfo(textBinding binding.String, pt *point.PointTracker) {
 }
 
 func InfoText(textBinding binding.String) (info *canvas.Text) {
-	// textColor := color.Black
-	// if isDark {
-	// 	textColor = color.White
-	// }
-	textColor := color.RGBA{0, 255, 0, 255}
+	textColor := custom.GREEN
 
 	info = canvas.NewText("", textColor)
-	// info.TextSize = (3 * info.TextSize) / 4
+	info.TextSize = (3 * info.TextSize) / 4
 	info.Alignment = fyne.TextAlignCenter
 	return info
 }
@@ -229,7 +223,7 @@ func updateDice(img []*canvas.Image, left int, images [][]image.Image, leftDie i
 	img[right].Refresh()
 }
 
-func handleKey(key string, bet BS, bank *Cash) {
+func handleKey(key string, bet utils.BS, bank *Cash) {
 	s, _ := bet.Get()
 	if key == "DEL" {
 		if len(s) > 0 {
@@ -272,27 +266,27 @@ func ToMoney(s string) Money {
 
 type Cash struct {
 	initialBank, amt Money
-	amtString        BS
+	amtString        utils.BS
 }
 
 func NewCash(initialBank Money) *Cash {
 	b := &Cash{
 		initialBank: initialBank,
 		amt:         initialBank,
-		amtString:   NewBS(),
+		amtString:   utils.NewBS(),
 	}
 	b.amtString.Set(b.String())
 	return b
 }
 
-func (b *Cash) Reset(bet BS, initialBank Money) {
+func (b *Cash) Reset(bet utils.BS, initialBank Money) {
 	b.initialBank = initialBank
 	b.SetAmt(initialBank)
 	half := initialBank / 2
 	bet.Set(half.String())
 }
 
-func (b *Cash) AddBetAmt(bet BS, pos bool) {
+func (b *Cash) AddBetAmt(bet utils.BS, pos bool) {
 	s, _ := bet.Get()
 	betAmt := ToMoney(s)
 	if !pos {
@@ -312,7 +306,7 @@ func (b *Cash) String() string {
 	return b.amt.String()
 }
 
-func setAuto(bet BS, curAmt Money, factor Money) {
+func setAuto(bet utils.BS, curAmt Money, factor Money) {
 	if factor == 0 {
 		factor = 1
 	}
@@ -354,12 +348,6 @@ func fromThousands(s string) string {
 	return strings.ReplaceAll(s, ",", "")
 }
 
-type BS struct{ binding.String }
-
-func NewBS() BS { return BS{binding.NewString()} }
-
-func (s BS) GetS() string { t, _ := s.Get(); return t }
-
 type ThemedLabel struct {
 	*widget.Label
 	overlay *canvas.Rectangle
@@ -371,9 +359,10 @@ func NewThemedLabel(text string) *ThemedLabel {
 	return l
 }
 
-func NewThemedLabelWithData(text BS) *ThemedLabel {
+func NewThemedLabelWithData(text utils.BS) *ThemedLabel {
 	l := &ThemedLabel{Label: widget.NewLabelWithData(text), overlay: canvas.NewRectangle(color.Transparent)}
 	l.overlay.StrokeWidth = 1
+	l.Label.Alignment = fyne.TextAlignCenter
 	return l
 }
 
