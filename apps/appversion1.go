@@ -2,6 +2,7 @@ package apps
 
 import (
 	"bytes"
+	"craps/custom"
 	"craps/point"
 	"embed"
 	"fmt"
@@ -17,7 +18,6 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
 	"fyne.io/fyne/v2/layout"
-	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"golang.org/x/exp/rand"
 )
@@ -92,7 +92,7 @@ func App1(animationFiles embed.FS) *fyne.Container {
 	// the zero based value of the rolled die
 	leftDie, rightDie := 0, 0
 
-	var rollButton *widget.Button
+	var rollButton *custom.ButtonWidget
 	doAnimation := func(tick float32) {
 		// there are len(images) to display in 4s, tick will be 0.5 at 2s for instance, which is len(images)/2, so the image # is tick*len(images)
 		i := int(tick * float32(len(images[0])-1))
@@ -136,7 +136,8 @@ func App1(animationFiles embed.FS) *fyne.Container {
 	}
 
 	rand.Seed(uint64(time.Now().UnixNano()))
-	rollButton = widget.NewButtonWithIcon("Roll", theme.Icon(theme.IconNameNavigateNext), func() {
+	theme1 := custom.WidgetTheme{LabelBorderColor: custom.GREEN, LabelTextColor: custom.OFF_WHITE}
+	rollButton = custom.NewButtonWidget("Roll", theme1, func() {
 		rollButton.Disable()
 		b, _ := bet.Get()
 		i := ToMoney(b)
@@ -150,10 +151,6 @@ func App1(animationFiles embed.FS) *fyne.Container {
 	overlay.StrokeColor = color.RGBA{0, 0, 255, 255}
 	overlay.StrokeWidth = 2
 	overlay.SetMinSize(fyne.NewSize(100, 20))
-	rollButtonWithOverlay := container.NewStack(
-		rollButton,
-		overlay,
-	)
 
 	keys := make([]fyne.CanvasObject, 0)
 	for _, key := range []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "AC", "0", "DEL", "Bet 1/4", "Bet 1/2", "Bet All"} {
@@ -192,7 +189,7 @@ func App1(animationFiles embed.FS) *fyne.Container {
 	stuff := container.NewVBox(
 		dice,
 		container.NewGridWithColumns(3, keys...),
-		rollButtonWithOverlay,
+		rollButton,
 		result.Stack(),
 		container.NewGridWithColumns(3, playerLabel.Stack(), ptLabel.Stack(), pLabel.Stack()),
 		container.NewGridWithColumns(2, bankHeading.Stack(), betHeading.Stack()),
