@@ -240,7 +240,7 @@ func handleKey(key string, bet utils.BS, bank *Cash, infoString utils.BS, autoAC
 			if canCover(s, bank) {
 				bet.Set(s)
 			} else {
-				notify("Maximum bet is "+bank.String(), infoString)
+				infoString.Set("Maximum bet is " + bank.String())
 			}
 		}
 	} else if key == "AC" {
@@ -256,18 +256,9 @@ func handleKey(key string, bet utils.BS, bank *Cash, infoString utils.BS, autoAC
 		if canCover(s, bank) {
 			bet.Set(s)
 		} else {
-			notify("Maximum bet is "+bank.String(), infoString)
+			infoString.Set("Maximum bet is " + bank.String())
 		}
 	}
-}
-
-func notify(msg string, infoString utils.BS) {
-	curInfo := infoString.GetS()
-	go func() {
-		infoString.Set(msg)
-		time.Sleep(3 * time.Second)
-		infoString.Set(curInfo)
-	}()
 }
 
 func canCover(s string, bank *Cash) bool {
