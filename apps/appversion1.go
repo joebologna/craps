@@ -81,14 +81,14 @@ func App1(animationFiles embed.FS) *fyne.Container {
 
 	var info *canvas.Text
 
-	textBinding := binding.NewString()
-	textBinding.AddListener(binding.NewDataListener(func() {
-		newText, _ := textBinding.Get()
+	infoString := utils.NewBS()
+	infoString.AddListener(binding.NewDataListener(func() {
+		newText, _ := infoString.Get()
 		info.Text = newText
 		info.Refresh()
 	}))
 
-	info = InfoText(textBinding)
+	info = InfoText(infoString)
 
 	// indicate the bet should be cleared when the first key is pressed after a roll
 	var autoAC = true
@@ -134,7 +134,7 @@ func App1(animationFiles embed.FS) *fyne.Container {
 			ptLabelString.Set(pt.CurState.String())
 			pLabelString.Set(pt.CurPoint.String())
 			playerLabelString.Set(pt.NewPlayer.String())
-			setInfo(textBinding, pt)
+			setInfo(infoString, pt)
 			resultString.Set(resultText)
 		}
 	}
@@ -159,7 +159,7 @@ func App1(animationFiles embed.FS) *fyne.Container {
 
 	keys := make([]fyne.CanvasObject, 0)
 	for _, key := range []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "AC", "0", "DEL", "Bet 1/4", "Bet 1/2", "Bet All"} {
-		b := widget.NewButton(" "+key+" ", func() { handleKey(key, bet, bank, &autoAC) })
+		b := widget.NewButton(" "+key+" ", func() { handleKey(key, bet, bank, infoString, &autoAC) })
 		keys = append(keys, b)
 	}
 
@@ -186,7 +186,7 @@ func App1(animationFiles embed.FS) *fyne.Container {
 		bankLabel.Refresh()
 	}
 
-	setInfo(textBinding, pt)
+	setInfo(infoString, pt)
 
 	stuff := container.NewVBox(
 		dice,
@@ -203,7 +203,7 @@ func App1(animationFiles embed.FS) *fyne.Container {
 	return container.NewStack(container.NewVScroll(stuff), bg)
 }
 
-func setInfo(textBinding binding.String, pt *point.PointTracker) {
+func setInfo(textBinding utils.BS, pt *point.PointTracker) {
 	if pt.NewPlayer == point.NEW_PLAYER {
 		textBinding.Set("2, 3, 12 loses. 7, 11 wins, otherwise point is set.")
 	} else {
@@ -228,7 +228,7 @@ func updateDice(img []*canvas.Image, left int, images [][]image.Image, leftDie i
 }
 
 // TODO: call bet.Set("") when keys are pressed immediately after a roll to prevent lack of feedback and confusion
-func handleKey(key string, bet utils.BS, bank *Cash, autoAC *bool) {
+func handleKey(key string, bet utils.BS, bank *Cash, infoString utils.BS, autoAC *bool) {
 	if *autoAC {
 		bet.Set("")
 	}
@@ -239,6 +239,8 @@ func handleKey(key string, bet utils.BS, bank *Cash, autoAC *bool) {
 			s = s[:len(s)-1]
 			if canCover(s, bank) {
 				bet.Set(s)
+			} else {
+				notify("Maximum bet is "+bank.String(), infoString)
 			}
 		}
 	} else if key == "AC" {
@@ -253,8 +255,19 @@ func handleKey(key string, bet utils.BS, bank *Cash, autoAC *bool) {
 		s += key
 		if canCover(s, bank) {
 			bet.Set(s)
+		} else {
+			notify("Maximum bet is "+bank.String(), infoString)
 		}
 	}
+}
+
+func notify(msg string, infoString utils.BS) {
+	curInfo := infoString.GetS()
+	go func() {
+		infoString.Set(msg)
+		time.Sleep(3 * time.Second)
+		infoString.Set(curInfo)
+	}()
 }
 
 func canCover(s string, bank *Cash) bool {
