@@ -23,22 +23,9 @@ import (
 	"golang.org/x/exp/rand"
 )
 
-var RED, GREEN = color.RGBA{255, 0, 0, 128}, color.RGBA{0, 255, 0, 128}
+var RED, GREEN, MUTED_GRAY = color.RGBA{255, 0, 0, 128}, color.RGBA{0, 255, 0, 128}, color.RGBA{128, 128, 128, 128}
 
-func makeLabelWithData(title string, filled bool) (bs utils.BS, l *ThemedLabel) {
-	bs = utils.NewBS()
-	bs.Set(title)
-	l = NewThemedLabelWithData(bs)
-	l.Alignment = fyne.TextAlignCenter
-	if filled {
-		l.overlay.FillColor, l.overlay.StrokeWidth = GREEN, 2
-	} else {
-		l.overlay.StrokeColor, l.overlay.StrokeWidth = GREEN, 2
-	}
-	return
-}
-
-func App1(animationFiles embed.FS) *fyne.Container {
+func Poker(animationFiles embed.FS) *fyne.Container {
 
 	initialMsg := "Welcome to Simple Craps."
 	images := cacheImages(animationFiles)
@@ -51,10 +38,7 @@ func App1(animationFiles embed.FS) *fyne.Container {
 	ptLabelString.Set(pt.CurState.String())
 	pLabelString.Set(pt.CurPoint.String())
 
-	resultString := utils.NewBS()
-	resultString.Set(initialMsg)
-	result := NewThemedLabelWithData(resultString)
-	result.overlay.FillColor = GREEN
+	resultString, result := makeLabelWithData(initialMsg, true)
 
 	// widgets showing die animation side-by-side
 	img := make([]*canvas.Image, 2)
@@ -65,18 +49,19 @@ func App1(animationFiles embed.FS) *fyne.Container {
 		img[i].FillMode, img[i].ScaleMode = canvas.ImageFillOriginal, canvas.ImageScaleFastest
 	}
 
-	initialBank := Money(2000)
+	initialBank := money(2000)
 	savedBank := fyne.CurrentApp().Preferences().Int("bank")
 	if savedBank != 0 {
-		initialBank = Money(savedBank)
+		initialBank = money(savedBank)
 	}
-	bank := NewCash(initialBank)
-	bankLabel := NewThemedLabelWithData(bank.amtString)
+
+	bank := newCash(initialBank)
+	bankLabel := newThemedLabelWithData(bank.amtString)
 	bankLabel.overlay.StrokeColor, bankLabel.overlay.StrokeWidth = GREEN, 2
 
 	bet := utils.NewBS()
-	bet.Set(Money(int64(initialBank) / 2).String())
-	betLabel := NewThemedLabelWithData(bet)
+	bet.Set(money(int64(initialBank) / 2).String())
+	betLabel := newThemedLabelWithData(bet)
 	betLabel.overlay.StrokeColor, betLabel.overlay.StrokeWidth = GREEN, 2
 
 	var info *canvas.Text
@@ -88,7 +73,7 @@ func App1(animationFiles embed.FS) *fyne.Container {
 		info.Refresh()
 	}))
 
-	info = InfoText(infoString)
+	info = infoText(infoString)
 
 	// indicate the bet should be cleared when the first key is pressed after a roll
 	var autoAC = true
@@ -113,14 +98,14 @@ func App1(animationFiles embed.FS) *fyne.Container {
 			case point.WIN:
 				pt.Reset()
 				resultText += ". You Win!"
-				bank.AddBetAmt(bet, true)
+				bank.addBetAmt(bet, true)
 			case point.LOSE:
 				pt.Reset()
 				resultText += ". You Lose."
-				bank.AddBetAmt(bet, false)
-				curBet := ToMoney(bet.GetS())
+				bank.addBetAmt(bet, false)
+				curBet := toMoney(bet.GetS())
 				if bank.amt <= 0.0 {
-					bank.SetAmt(bank.initialBank)
+					bank.setAmt(bank.initialBank)
 					bet.Set((bank.initialBank / 2).String())
 					resultText += " Refreshed bank."
 				} else if curBet > bank.amt {
@@ -145,17 +130,12 @@ func App1(animationFiles embed.FS) *fyne.Container {
 		rollButton.Disable()
 		autoAC = true
 		b, _ := bet.Get()
-		i := ToMoney(b)
+		i := toMoney(b)
 		bet.Set(i.String())
 		leftDie, rightDie = rand.Intn(6), rand.Intn(6)
 		resultString.Set("Rolling...")
 		fyne.NewAnimation(1*time.Second, doAnimation).Start()
 	})
-
-	overlay := canvas.NewRectangle(color.Transparent)
-	overlay.StrokeColor = color.RGBA{0, 0, 255, 255}
-	overlay.StrokeWidth = 2
-	overlay.SetMinSize(fyne.NewSize(100, 20))
 
 	keys := make([]fyne.CanvasObject, 0)
 	for _, key := range []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "AC", "0", "DEL", "Bet 1/4", "Bet 1/2", "Bet All"} {
@@ -163,26 +143,21 @@ func App1(animationFiles embed.FS) *fyne.Container {
 		keys = append(keys, b)
 	}
 
-	bankHeading, betHeading := NewThemedLabel("Bank"), NewThemedLabel("Bet")
+	bankHeading, betHeading := newThemedLabel("Bank"), newThemedLabel("Bet")
 	bankHeading.Alignment, betHeading.Alignment = fyne.TextAlignCenter, fyne.TextAlignCenter
 	bankLabel.Alignment, betLabel.Alignment = fyne.TextAlignCenter, fyne.TextAlignCenter
 
 	bg := canvas.NewRectangle(color.Transparent)
-	bg.StrokeWidth, bg.StrokeColor = 2, color.RGBA{128, 128, 128, 128}
+	bg.StrokeWidth, bg.StrokeColor = 2, MUTED_GRAY
 
-	dice := container.NewHBox(
-		layout.NewSpacer(),
-		img[left],
-		img[right],
-		layout.NewSpacer(),
-	)
+	dice := container.NewHBox(layout.NewSpacer(), img[left], img[right], layout.NewSpacer())
 
 	reset := func() {
 		pt.Reset()
-		initialBank = Money(2000)
+		initialBank = money(2000)
 		savedBank = int(initialBank)
-		bank.Reset(bet, initialBank)
-		bank.SetAmt(initialBank)
+		bank.reset(bet, initialBank)
+		bank.setAmt(initialBank)
 		bankLabel.Refresh()
 	}
 
@@ -192,10 +167,10 @@ func App1(animationFiles embed.FS) *fyne.Container {
 		dice,
 		container.NewGridWithColumns(3, keys...),
 		rollButton,
-		result.Stack(),
-		container.NewGridWithColumns(3, playerLabel.Stack(), ptLabel.Stack(), pLabel.Stack()),
-		container.NewGridWithColumns(2, bankHeading.Stack(), betHeading.Stack()),
-		container.NewGridWithColumns(2, bankLabel.Stack(), betLabel.Stack()),
+		result.stack(),
+		container.NewGridWithColumns(3, playerLabel.stack(), ptLabel.stack(), pLabel.stack()),
+		container.NewGridWithColumns(2, bankHeading.stack(), betHeading.stack()),
+		container.NewGridWithColumns(2, bankLabel.stack(), betLabel.stack()),
 		widget.NewButton("Reset the Bank", reset),
 		container.NewPadded(info),
 	)
@@ -211,7 +186,7 @@ func setInfo(textBinding utils.BS, pt *point.PointTracker) {
 	}
 }
 
-func InfoText(textBinding binding.String) (info *canvas.Text) {
+func infoText(textBinding binding.String) (info *canvas.Text) {
 	textColor := custom.GREEN
 
 	info = canvas.NewText("", textColor)
@@ -227,8 +202,7 @@ func updateDice(img []*canvas.Image, left int, images [][]image.Image, leftDie i
 	img[right].Refresh()
 }
 
-// TODO: call bet.Set("") when keys are pressed immediately after a roll to prevent lack of feedback and confusion
-func handleKey(key string, bet utils.BS, bank *Cash, infoString utils.BS, autoAC *bool) {
+func handleKey(key string, bet utils.BS, bank *cash, infoString utils.BS, autoAC *bool) {
 	if *autoAC {
 		bet.Set("")
 	}
@@ -261,29 +235,29 @@ func handleKey(key string, bet utils.BS, bank *Cash, infoString utils.BS, autoAC
 	}
 }
 
-func canCover(s string, bank *Cash) bool {
-	amt := ToMoney(fromThousands(s))
+func canCover(s string, bank *cash) bool {
+	amt := toMoney(fromThousands(s))
 	return amt <= bank.amt
 }
 
-type Money int64
+type money int64
 
-func (m Money) String() string {
+func (m money) String() string {
 	return toThousands(strconv.FormatInt(int64(m), 10))
 }
 
-func ToMoney(s string) Money {
+func toMoney(s string) money {
 	i, _ := strconv.ParseInt(fromThousands(s), 10, 64)
-	return Money(i)
+	return money(i)
 }
 
-type Cash struct {
-	initialBank, amt Money
+type cash struct {
+	initialBank, amt money
 	amtString        utils.BS
 }
 
-func NewCash(initialBank Money) *Cash {
-	b := &Cash{
+func newCash(initialBank money) *cash {
+	b := &cash{
 		initialBank: initialBank,
 		amt:         initialBank,
 		amtString:   utils.NewBS(),
@@ -292,34 +266,34 @@ func NewCash(initialBank Money) *Cash {
 	return b
 }
 
-func (b *Cash) Reset(bet utils.BS, initialBank Money) {
+func (b *cash) reset(bet utils.BS, initialBank money) {
 	b.initialBank = initialBank
-	b.SetAmt(initialBank)
+	b.setAmt(initialBank)
 	half := initialBank / 2
 	bet.Set(half.String())
 }
 
-func (b *Cash) AddBetAmt(bet utils.BS, pos bool) {
+func (b *cash) addBetAmt(bet utils.BS, pos bool) {
 	s, _ := bet.Get()
-	betAmt := ToMoney(s)
+	betAmt := toMoney(s)
 	if !pos {
 		betAmt = -betAmt
 	}
-	newAmt := b.amt + Money(betAmt)
-	b.SetAmt(newAmt)
+	newAmt := b.amt + money(betAmt)
+	b.setAmt(newAmt)
 }
 
-func (b *Cash) SetAmt(amt Money) {
+func (b *cash) setAmt(amt money) {
 	b.amt = amt
 	fyne.CurrentApp().Preferences().SetInt("bank", int(amt))
 	b.amtString.Set(b.String())
 }
 
-func (b *Cash) String() string {
+func (b *cash) String() string {
 	return b.amt.String()
 }
 
-func setAuto(bet utils.BS, curAmt Money, factor Money, autoAC *bool) {
+func setAuto(bet utils.BS, curAmt money, factor money, autoAC *bool) {
 	if factor == 0 {
 		factor = 1
 	}
@@ -362,24 +336,37 @@ func fromThousands(s string) string {
 	return strings.ReplaceAll(s, ",", "")
 }
 
-type ThemedLabel struct {
+type themedLabel struct {
 	*widget.Label
 	overlay *canvas.Rectangle
 }
 
-func NewThemedLabel(text string) *ThemedLabel {
-	l := &ThemedLabel{Label: widget.NewLabel(text), overlay: canvas.NewRectangle(GREEN)}
+func newThemedLabel(text string) *themedLabel {
+	l := &themedLabel{Label: widget.NewLabel(text), overlay: canvas.NewRectangle(GREEN)}
 	l.overlay.StrokeWidth = 1
 	return l
 }
 
-func NewThemedLabelWithData(text utils.BS) *ThemedLabel {
-	l := &ThemedLabel{Label: widget.NewLabelWithData(text), overlay: canvas.NewRectangle(color.Transparent)}
+func newThemedLabelWithData(text utils.BS) *themedLabel {
+	l := &themedLabel{Label: widget.NewLabelWithData(text), overlay: canvas.NewRectangle(color.Transparent)}
 	l.overlay.StrokeWidth = 1
 	l.Label.Alignment = fyne.TextAlignCenter
 	return l
 }
 
-func (t *ThemedLabel) Stack() fyne.CanvasObject {
+func (t *themedLabel) stack() fyne.CanvasObject {
 	return container.NewStack(t.overlay, t.Label)
+}
+
+func makeLabelWithData(title string, filled bool) (bs utils.BS, l *themedLabel) {
+	bs = utils.NewBS()
+	bs.Set(title)
+	l = newThemedLabelWithData(bs)
+	l.Alignment = fyne.TextAlignCenter
+	if filled {
+		l.overlay.FillColor = GREEN
+	} else {
+		l.overlay.StrokeColor, l.overlay.StrokeWidth = GREEN, 2
+	}
+	return
 }
