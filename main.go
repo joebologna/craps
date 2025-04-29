@@ -1,6 +1,7 @@
 package main
 
 import (
+	"craps/apps"
 	"craps/utils"
 	"embed"
 
@@ -20,7 +21,7 @@ func main() {
 	screenSize := utils.GetScreenSize()
 	myWindow.Resize(screenSize)
 
-	stuff := AppVersion1.App(animationFiles)
+	stuff := apps.App1(animationFiles)
 
 	myWindow.SetContent(stuff)
 
